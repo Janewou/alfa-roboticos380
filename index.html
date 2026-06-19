@@ -1,239 +1,133 @@
 <!DOCTYPE html>
-
 <html lang="pt-br">
-
 <head>
-
-  <meta charset="UTF-8">
-
-  <title>Gestos Simples</title>
-
+<meta charset="UTF-8">
+<title>Reconhecimento de Gestos Avançado</title>
  
-
   <style>
-
     body {
-
       margin: 0;
-
       background: #111;
-
       color: white;
-
       text-align: center;
-
       font-family: Arial;
-
     }
-
  
-
     video, canvas {
-
       position: absolute;
-
       top: 0;
-
       left: 0;
-
       transform: scaleX(-1);
-
     }
-
  
-
     #gesture {
-
       position: absolute;
-
       bottom: 30px;
-
       width: 100%;
-
       font-size: 50px;
-
       font-weight: bold;
-
       color: #00ffcc;
-
       text-shadow: 0 0 10px black;
-
     }
-
-  </style>
-
+</style>
 </head>
-
  
-
 <body>
-
  
-
 <video id="video" autoplay playsinline width="640" height="480"></video>
-
 <canvas id="canvas" width="640" height="480"></canvas>
-
  
-
 <div id="gesture">Carregando...</div>
-
  
-
 <!-- MediaPipe -->
-
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-
  
-
 <script>
-
 const videoElement = document.getElementById("video");
-
 const canvasElement = document.getElementById("canvas");
-
 const canvasCtx = canvasElement.getContext("2d");
-
 const gestureText = document.getElementById("gesture");
-
  
-
 const hands = new Hands({
-
   locateFile: (file) =>
-
     `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-
 });
-
  
-
 hands.setOptions({
-
   maxNumHands: 1,
-
   modelComplexity: 1,
-
   minDetectionConfidence: 0.7,
-
   minTrackingConfidence: 0.7
-
 });
-
  
-
-// 👇 DETECÇÃO SIMPLIFICADA
-
+// Função de reconhecimento de gestos
 function detectarGesto(landmarks) {
-
-  const tipIds = [8, 12, 16, 20]; // dedos (exceto polegar)
-
+  const dedos = {
+    polegar: landmarks[4].x < landmarks[3].x,
+    indicador: landmarks[8].y < landmarks[6].y,
+    medio: landmarks[12].y < landmarks[10].y,
+    anelar: landmarks[16].y < landmarks[14].y,
+    mindinho: landmarks[20].y < landmarks[18].y
+  };
  
-
-  let dedosLevantados = 0;
-
+  const i = dedos.indicador;
+  const m = dedos.medio;
+  const r = dedos.anelar;
+  const p = dedos.polegar;
+  const mi = dedos.mindinho;
  
-
-  for (let i = 0; i < tipIds.length; i++) {
-
-    if (landmarks[tipIds[i]].y < landmarks[tipIds[i] - 2].y) {
-
-      dedosLevantados++;
-
-    }
-
-  }
-
+  // ☝️ Dedo pra cima
+  if (i && !m && !r && !mi) return "☝️ Dedo pra cima";
  
-
-  // polegar (horizontal)
-
-  const polegarAberto = landmarks[4].x < landmarks[3].x ? 1 : 0;
-
-  dedosLevantados += polegarAberto;
-
+  // ✌️ Paz e Amor
+  if (i && m && !r && !mi) return "✌️ Paz e Amor";
  
-
-  if (dedosLevantados === 0) return "👊 Mão fechada";
-
-  if (dedosLevantados >= 4) return "🖐 Mão aberta";
-
+  // 🤘 Rock and Roll
+  if (i && !m && !r && mi) return "🤘 Rock and Roll";
  
-
-  return "🤔 Outro";
-
+  // 🖕 Dedo do Meio
+  if (!i && m && !r && !mi) return "🖕 Dedo do Meio";
+ 
+  // 👊 Mão fechada
+  if (!i && !m && !r && !mi) return "👊 Mão Fechada";
+ 
+  // 🖐 Mão aberta
+  if (i && m && r && mi) return "🖐 Mão Aberta";
+ 
+  return "🤔 Outro gesto";
 }
-
  
-
 hands.onResults((results) => {
-
   canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-
  
-
   canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-
  
-
   if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-
     const landmarks = results.multiHandLandmarks[0];
-
  
-
     drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS);
-
     drawLandmarks(canvasCtx, landmarks);
-
  
-
     const gesto = detectarGesto(landmarks);
-
     gestureText.innerText = gesto;
-
  
-
   } else {
-
     gestureText.innerText = "🚫 Nenhuma mão";
-
   }
-
 });
-
  
-
 const camera = new Camera(videoElement, {
-
   onFrame: async () => {
-
     await hands.send({ image: videoElement });
-
   },
-
   width: 640,
-
   height: 480
-
 });
-
  
-
 camera.start();
-
 </script>
-
  
-
 </body>
-
 </html>
-
- 
-
-
