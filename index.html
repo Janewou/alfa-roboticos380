@@ -1,133 +1,717 @@
 <!DOCTYPE html>
+
 <html lang="pt-br">
+
 <head>
+
 <meta charset="UTF-8">
-<title>Reconhecimento de Gestos Avançado</title>
+
+<title>EV3 HAND CONTROL</title>
+
  
-  <style>
-    body {
-      margin: 0;
-      background: #111;
-      color: white;
-      text-align: center;
-      font-family: Arial;
-    }
- 
-    video, canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      transform: scaleX(-1);
-    }
- 
-    #gesture {
-      position: absolute;
-      bottom: 30px;
-      width: 100%;
-      font-size: 50px;
-      font-weight: bold;
-      color: #00ffcc;
-      text-shadow: 0 0 10px black;
-    }
-</style>
-</head>
- 
-<body>
- 
-<video id="video" autoplay playsinline width="640" height="480"></video>
-<canvas id="canvas" width="640" height="480"></canvas>
- 
-<div id="gesture">Carregando...</div>
- 
-<!-- MediaPipe -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
- 
-<script>
-const videoElement = document.getElementById("video");
-const canvasElement = document.getElementById("canvas");
-const canvasCtx = canvasElement.getContext("2d");
-const gestureText = document.getElementById("gesture");
- 
-const hands = new Hands({
-  locateFile: (file) =>
-    `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-});
- 
-hands.setOptions({
-  maxNumHands: 1,
-  modelComplexity: 1,
-  minDetectionConfidence: 0.7,
-  minTrackingConfidence: 0.7
-});
- 
-// Função de reconhecimento de gestos
-function detectarGesto(landmarks) {
-  const dedos = {
-    polegar: landmarks[4].x < landmarks[3].x,
-    indicador: landmarks[8].y < landmarks[6].y,
-    medio: landmarks[12].y < landmarks[10].y,
-    anelar: landmarks[16].y < landmarks[14].y,
-    mindinho: landmarks[20].y < landmarks[18].y
-  };
- 
-  const i = dedos.indicador;
-  const m = dedos.medio;
-  const r = dedos.anelar;
-  const p = dedos.polegar;
-  const mi = dedos.mindinho;
- 
-  // ☝️ Dedo pra cima
-  if (i && !m && !r && !mi) return "☝️ Dedo pra cima";
- 
-  // ✌️ Paz e Amor
-  if (i && m && !r && !mi) return "✌️ Paz e Amor";
- 
-  // 🤘 Rock and Roll
-  if (i && !m && !r && mi) return "🤘 Rock and Roll";
- 
-  // 🖕 Dedo do Meio
-  if (!i && m && !r && !mi) return "🖕 Dedo do Meio";
- 
-  // 👊 Mão fechada
-  if (!i && !m && !r && !mi) return "👊 Mão Fechada";
- 
-  // 🖐 Mão aberta
-  if (i && m && r && mi) return "🖐 Mão Aberta";
- 
-  return "🤔 Outro gesto";
+
+<style>
+
+body{
+
+    margin:0;
+
+    background:#000;
+
+    font-family:'Courier New', monospace;
+
+    color:#00ff66;
+
+    overflow:hidden;
+
 }
+
  
-hands.onResults((results) => {
-  canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+
+.container{
+
+    display:flex;
+
+    height:100vh;
+
+}
+
  
-  canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+.panel{
+
+    width:320px;
+
+    background:#050505;
+
+    border-right:2px solid #00ff66;
+
+    padding:20px;
+
+}
+
  
-  if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
-    const landmarks = results.multiHandLandmarks[0];
+
+.box{
+
+    border:1px solid #00ff66;
+
+    padding:10px;
+
+    margin-bottom:10px;
+
+    background:rgba(0,255,102,0.08);
+
+}
+
  
-    drawConnectors(canvasCtx, landmarks, HAND_CONNECTIONS);
-    drawLandmarks(canvasCtx, landmarks);
+
+button{
+
+    width:100%;
+
+    padding:15px;
+
+    margin-top:10px;
+
+    background:#00ff66;
+
+    color:#000;
+
+    border:none;
+
+    font-weight:bold;
+
+    cursor:pointer;
+
+    font-size:16px;
+
+}
+
  
-    const gesto = detectarGesto(landmarks);
-    gestureText.innerText = gesto;
+
+.video-area{
+
+    flex:1;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:radial-gradient(#001a0d,#000);
+
+}
+
  
-  } else {
-    gestureText.innerText = "🚫 Nenhuma mão";
-  }
-});
+
+.frame{
+
+    position:relative;
+
+    width:720px;
+
+    height:540px;
+
+    border:2px solid #00ff66;
+
+    box-shadow:0 0 30px #00ff66;
+
+    overflow:hidden;
+
+}
+
  
-const camera = new Camera(videoElement, {
-  onFrame: async () => {
-    await hands.send({ image: videoElement });
-  },
-  width: 640,
-  height: 480
-});
+
+#video{
+
+    position:absolute;
+
+    width:100%;
+
+    height:100%;
+
+    object-fit:cover;
+
+    z-index:1;
+
+}
+
  
-camera.start();
+
+#canvas{
+
+    position:absolute;
+
+    width:100%;
+
+    height:100%;
+
+    z-index:2;
+
+}
+
+ 
+
+h2{
+
+    text-align:center;
+
+}
+
+</style>
+
+</head>
+
+ 
+
+<body>
+
+ 
+
+<div class="container">
+
+ 
+
+    <div class="panel">
+
+ 
+
+        <h2>EV3 CORE</h2>
+
+ 
+
+        <div class="box" id="status">
+
+            STATUS: OFFLINE
+
+        </div>
+
+ 
+
+        <div class="box" id="gesture">
+
+            GESTURE: NONE
+
+        </div>
+
+ 
+
+        <div class="box" id="motor">
+
+            POWER: 0
+
+        </div>
+
+ 
+
+        <button onclick="startCamera()">
+
+            ATIVAR CAMERA
+
+        </button>
+
+ 
+
+        <button onclick="connectEV3()">
+
+            CONECTAR EV3
+
+        </button>
+
+ 
+
+    </div>
+
+ 
+
+    <div class="video-area">
+
+ 
+
+        <div class="frame">
+
+ 
+
+            <video id="video" playsinline></video>
+
+ 
+
+            <canvas id="canvas" width="720" height="540"></canvas>
+
+ 
+
+        </div>
+
+ 
+
+    </div>
+
+ 
+
+</div>
+
+ 
+
+<!-- MEDIAPIPE -->
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
+
+ 
+
+<script>
+
+ 
+
+let hands;
+
+let camera;
+
+ 
+
+const video = document.getElementById("video");
+
+const canvas = document.getElementById("canvas");
+
+const ctx = canvas.getContext("2d");
+
+ 
+
+let port;
+
+let writer;
+
+let connected = false;
+
+ 
+
+/* =========================
+
+   CONECTAR EV3
+
+========================= */
+
+async function connectEV3(){
+
+ 
+
+    try{
+
+ 
+
+        port = await navigator.serial.requestPort();
+
+ 
+
+        await port.open({
+
+            baudRate:9600
+
+        });
+
+ 
+
+        const encoder = new TextEncoderStream();
+
+ 
+
+        encoder.readable.pipeTo(port.writable);
+
+ 
+
+        writer = encoder.writable.getWriter();
+
+ 
+
+        connected = true;
+
+ 
+
+        document.getElementById("status").innerText =
+
+            "STATUS: ONLINE";
+
+ 
+
+    }catch(err){
+
+ 
+
+        console.error(err);
+
+ 
+
+        alert("Erro ao conectar EV3");
+
+ 
+
+    }
+
+}
+
+ 
+
+/* =========================
+
+   INIT MEDIAPIPE
+
+========================= */
+
+function initMediaPipe(){
+
+ 
+
+    hands = new window.Hands({
+
+ 
+
+        locateFile:(file)=>
+
+            `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+
+ 
+
+    });
+
+ 
+
+    hands.setOptions({
+
+ 
+
+        maxNumHands:1,
+
+        modelComplexity:1,
+
+        minDetectionConfidence:0.7,
+
+        minTrackingConfidence:0.7,
+
+        selfieMode:true
+
+ 
+
+    });
+
+ 
+
+    hands.onResults(onResults);
+
+ 
+
+    camera = new window.Camera(video,{
+
+ 
+
+        onFrame: async ()=>{
+
+ 
+
+            await hands.send({
+
+                image:video
+
+            });
+
+ 
+
+        },
+
+ 
+
+        width:720,
+
+        height:540
+
+ 
+
+    });
+
+ 
+
+    camera.start();
+
+}
+
+ 
+
+/* =========================
+
+   PROCESSAMENTO
+
+========================= */
+
+function onResults(results){
+
+ 
+
+    ctx.clearRect(0,0,720,540);
+
+ 
+
+    if(results.image){
+
+ 
+
+        ctx.drawImage(
+
+            results.image,
+
+            0,
+
+            0,
+
+            720,
+
+            540
+
+        );
+
+    }
+
+ 
+
+    if(results.multiHandLandmarks?.length){
+
+ 
+
+        const lm = results.multiHandLandmarks[0];
+
+ 
+
+        /* DESENHA MÃO */
+
+        window.drawConnectors(
+
+            ctx,
+
+            lm,
+
+            window.HAND_CONNECTIONS,
+
+            {
+
+                color:"#00ff66",
+
+                lineWidth:5
+
+            }
+
+        );
+
+ 
+
+        window.drawLandmarks(
+
+            ctx,
+
+            lm,
+
+            {
+
+                color:"#ffffff",
+
+                fillColor:"#00ff66",
+
+                radius:5
+
+            }
+
+        );
+
+ 
+
+        /* =========================
+
+           DETECÇÃO DOS DEDOS
+
+        ========================= */
+
+ 
+
+        const indexUp  = lm[8].y  < lm[6].y;
+
+        const middleUp = lm[12].y < lm[10].y;
+
+        const ringUp   = lm[16].y < lm[14].y;
+
+        const pinkyUp  = lm[20].y < lm[18].y;
+
+ 
+
+        /* quantidade dedos levantados */
+
+        const totalFingers =
+
+            indexUp +
+
+            middleUp +
+
+            ringUp +
+
+            pinkyUp;
+
+ 
+
+        /* mão aberta */
+
+        const openHand = totalFingers >= 3;
+
+ 
+
+        /* potência */
+
+        const power = openHand ? 100 : 0;
+
+ 
+
+        /* HUD */
+
+        document.getElementById("gesture").innerText =
+
+            openHand ? "GESTURE: OPEN HAND" :
+
+                       "GESTURE: CLOSED";
+
+ 
+
+        document.getElementById("motor").innerText =
+
+            "POWER: " + power;
+
+ 
+
+        /* TEXTO NA TELA */
+
+        ctx.font = "40px Courier New";
+
+ 
+
+        ctx.fillStyle = "#00ff66";
+
+ 
+
+        ctx.fillText(
+
+            openHand ? "MOTOR ON" : "MOTOR OFF",
+
+            20,
+
+            50
+
+        );
+
+ 
+
+        /* ENVIA PARA EV3 */
+
+        if(connected && writer){
+
+ 
+
+            writer.write(`A:${power}\n`);
+
+ 
+
+        }
+
+ 
+
+    }else{
+
+ 
+
+        document.getElementById("gesture").innerText =
+
+            "GESTURE: NONE";
+
+ 
+
+        document.getElementById("motor").innerText =
+
+            "POWER: 0";
+
+    }
+
+}
+
+ 
+
+/* =========================
+
+   START CAMERA
+
+========================= */
+
+async function startCamera(){
+
+ 
+
+    try{
+
+ 
+
+        const stream =
+
+            await navigator.mediaDevices.getUserMedia({
+
+ 
+
+                video:{
+
+                    width:720,
+
+                    height:540
+
+                }
+
+ 
+
+            });
+
+ 
+
+        video.srcObject = stream;
+
+ 
+
+        await video.play();
+
+ 
+
+        initMediaPipe();
+
+ 
+
+    }catch(err){
+
+ 
+
+        console.error(err);
+
+ 
+
+        alert("Erro ao abrir câmera");
+
+ 
+
+    }
+
+}
+
+ 
+
 </script>
+
  
+
 </body>
+
 </html>
+
+
