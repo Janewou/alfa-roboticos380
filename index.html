@@ -1,717 +1,1640 @@
 <!DOCTYPE html>
-
-<html lang="pt-br">
-
+<html lang="pt-BR">
 <head>
-
-<meta charset="UTF-8">
-
-<title>EV3 HAND CONTROL</title>
-
- 
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>WEYLAND YUTANI // XENO VISION</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
+/* ══════════════════════════════════════════
+   TOKENS
+══════════════════════════════════════════ */
+:root{
+  --g:   #7dff5a;
+  --g60: rgba(125,255,90,.6);
+  --g08: rgba(125,255,90,.08);
+  --r:   #ff3b5f;
+  --amb: #ffb830;
+  --teal:#00ffcd;
+  --bg:  #010301;
+  --M:   'Share Tech Mono', monospace;
+  --D:   'Orbitron', sans-serif;
+  --panel-bg: linear-gradient(155deg, rgba(3,11,3,.97), rgba(1,5,1,.98));
+  --panel-bd: 1px solid rgba(125,255,90,.09);
+  --panel-sh: 0 0 0 1px rgba(0,0,0,.7), 0 0 40px rgba(0,255,100,.04), inset 0 1px 0 rgba(125,255,90,.06);
+  --r14: 14px; --r10: 10px; --r6: 6px;
+}
+*,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
+html,body { width:100%; height:100%; overflow:hidden; background:#000;
+  font-family:var(--M); color:#c8f5c0; font-size:11px; }
+ 
+body {
+  background:
+    radial-gradient(ellipse 60% 55% at 0% 0%,   rgba(0,255,90,.05),  transparent),
+    radial-gradient(ellipse 50% 40% at 100% 100%,rgba(0,255,160,.04), transparent),
+    var(--bg);
+}
+/* scanlines */
+body::before {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9800;
+  background:repeating-linear-gradient(to bottom,
+    transparent 0px, transparent 3px, rgba(0,0,0,.12) 3px, rgba(0,0,0,.12) 4px);
+}
+/* vignette */
+body::after {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:9801;
+  background:radial-gradient(ellipse at center, transparent 46%, rgba(0,0,0,.75) 100%);
+}
+ 
+/* moving grid */
+.grid {
+  position:fixed; inset:0; z-index:0; will-change:transform;
+  background-image:
+    linear-gradient(rgba(0,255,120,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,120,.025) 1px, transparent 1px);
+  background-size:48px 48px;
+  animation: gridmove 20s linear infinite;
+}
+@keyframes gridmove { to { transform: translateY(48px); } }
+ 
+/* ══════════════════════════════════════════
+   BOOT SCREEN
+══════════════════════════════════════════ */
+#boot {
+  position:fixed; inset:0; z-index:99999; background:#000;
+  display:flex; align-items:center; justify-content:center;
+  transition: opacity 1.8s ease, visibility 1.8s ease;
+}
+#boot.gone { opacity:0; visibility:hidden; pointer-events:none; }
+ 
+.bx { display:flex; flex-direction:column; align-items:center; width:560px; max-width:94vw; }
+.bx-rule { width:100%; height:1px; background:linear-gradient(90deg, transparent, var(--g), transparent); opacity:.3; }
+.bx-logo { width:100px; margin:32px 0 18px; filter:drop-shadow(0 0 20px var(--g)); animation:logopulse 3s ease infinite; }
+@keyframes logopulse { 50%{ filter:drop-shadow(0 0 40px var(--g)) drop-shadow(0 0 80px rgba(125,255,90,.25)); } }
+ 
+.bx-corp  { font-size:8px; letter-spacing:7px; color:rgba(125,255,90,.35); margin-bottom:4px; }
+.bx-title {
+  font-family:var(--D); font-size:clamp(22px,4.5vw,42px); font-weight:900;
+  letter-spacing:5px; color:var(--g); text-shadow:0 0 24px var(--g);
+  margin-bottom:3px; position:relative;
+}
+.bx-title::before, .bx-title::after {
+  content:attr(data-t); position:absolute; left:0; top:0;
+  font-family:var(--D); font-size:inherit; font-weight:900; letter-spacing:5px;
+}
+.bx-title::before { color:#ff3b5f; clip-path:polygon(0 20%,100% 20%,100% 40%,0 40%); animation:glitch1 5.5s infinite; }
+.bx-title::after  { color:#00ffcd; clip-path:polygon(0 60%,100% 60%,100% 80%,0 80%); animation:glitch2 4.8s infinite; }
+@keyframes glitch1 { 0%,88%,100%{transform:translateX(0)} 90%{transform:translateX(-4px)} 93%{transform:translateX(3px)} 95%{transform:translateX(0)} }
+@keyframes glitch2 { 0%,86%,100%{transform:translateX(0)} 88%{transform:translateX(4px)} 91%{transform:translateX(-3px)} 93%{transform:translateX(0)} }
+ 
+.bx-sub   { font-size:8px; letter-spacing:4px; color:rgba(125,255,90,.24); margin-bottom:32px; }
+.bx-plabs { display:flex; justify-content:space-between; font-size:8px; letter-spacing:2px; color:rgba(125,255,90,.3); margin-bottom:5px; width:100%; }
+.loader   { width:100%; height:2px; background:rgba(255,255,255,.05); border-radius:999px; overflow:hidden; position:relative; margin-bottom:12px; }
+.loader::after {
+  content:""; position:absolute; left:-45%; top:0; width:45%; height:100%;
+  background:linear-gradient(90deg, transparent, var(--g), transparent);
+  animation:loadslide 1.9s linear infinite;
+}
+@keyframes loadslide { to { left:110%; } }
+.bx-log    { font-size:9px; letter-spacing:1px; color:rgba(125,255,90,.25); line-height:1.9; width:100%; }
+.bx-prompt { margin-top:24px; font-size:11px; letter-spacing:4px; color:var(--g); text-shadow:0 0 8px var(--g); animation:blink 1s step-start infinite; }
+@keyframes blink { 50%{ opacity:0; } }
+ 
+/* ══════════════════════════════════════════
+   APP GRID — 3 columns
+══════════════════════════════════════════ */
+.app {
+  position:relative; z-index:1; width:100%; height:100vh;
+  display:grid;
+  grid-template-columns: 248px 1fr 232px;
+  gap:8px; padding:8px;
+}
+ 
+/* ══════════════════════════════════════════
+   PANEL BASE
+══════════════════════════════════════════ */
+.panel {
+  background:var(--panel-bg); border:var(--panel-bd);
+  border-radius:var(--r14); overflow:hidden; position:relative;
+  backdrop-filter:blur(14px); box-shadow:var(--panel-sh);
+}
+.panel::before {
+  content:""; position:absolute; top:0; left:8%; right:8%; height:1px;
+  background:linear-gradient(90deg, transparent, rgba(125,255,90,.18), transparent);
+  pointer-events:none;
+}
+ 
+/* ══════════════════════════════════════════
+   SHARED MINI COMPONENTS
+══════════════════════════════════════════ */
+.label { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.28); margin-bottom:5px; }
+.val-lg { font-family:var(--D); font-size:11px; font-weight:700; letter-spacing:.5px; line-height:1.2; }
+.val-sm { font-size:7px; letter-spacing:1px; color:rgba(125,255,90,.22); margin-top:2px; }
+ 
+.cg  { color:var(--g); }
+.cg2 { color:var(--teal); }
+.ca  { color:var(--amb); }
+.cd  { color:rgba(125,255,90,.5); }
+ 
+.dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--r);
+  margin-right:4px; vertical-align:middle; box-shadow:0 0 4px currentColor; transition:background .3s; }
+.dot.on { background:var(--g); }
+ 
+.sig { display:flex; align-items:flex-end; gap:2px; height:14px; margin-top:4px; }
+.sig span { display:block; width:4px; background:rgba(125,255,90,.14); border-radius:2px; transition:background .3s; }
+.sig span:nth-child(1){height:4px} .sig span:nth-child(2){height:7px}
+.sig span:nth-child(3){height:10px} .sig span:nth-child(4){height:14px}
+.sig.on span { background:var(--g); box-shadow:0 0 4px var(--g); }
+ 
+/* mini card */
+.mc {
+  border:1px solid rgba(125,255,90,.07); background:rgba(0,0,0,.32);
+  border-radius:var(--r10); padding:9px 10px; position:relative; overflow:hidden;
+}
+.mc::after {
+  content:""; position:absolute; top:0; right:0; width:0; height:0; border-style:solid;
+  border-width:0 9px 9px 0; border-color:transparent rgba(125,255,90,.08) transparent transparent;
+}
+ 
+/* sub-panel (reused for all card-like sections) */
+.subpanel {
+  border:1px solid rgba(125,255,90,.07); background:rgba(0,0,0,.36);
+  border-radius:var(--r10); padding:9px 10px;
+}
+ 
+/* ══════════════════════════════════════════
+   LEFT SIDEBAR
+══════════════════════════════════════════ */
+.lsb { padding:12px 11px; display:flex; flex-direction:column; gap:7px; overflow:hidden; }
+ 
+/* header */
+.lh { padding-bottom:10px; border-bottom:1px solid rgba(125,255,90,.07); }
+.lh-eye { font-size:7px; letter-spacing:4px; color:rgba(125,255,90,.26); margin-bottom:2px;
+  display:flex; align-items:center; gap:6px; }
+.lh-eye::before { content:""; display:inline-block; width:12px; height:1px; background:rgba(125,255,90,.26); }
+.lh-h1 { font-family:var(--D); font-size:20px; font-weight:900; letter-spacing:2px;
+  color:var(--g); text-shadow:0 0 14px rgba(125,255,90,.35); line-height:1; }
+.lh-tag { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.16); margin-top:2px; }
+ 
+/* stats row */
+.mcg { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+ 
+/* ── AUDIO SEQUENCER PANEL ── */
+.aud {
+  border-radius:var(--r10); padding:11px 12px; position:relative; overflow:hidden;
+  background:rgba(0,0,0,.55);
+  border:1px solid rgba(125,255,90,.1);
+  transition: border-color .3s, box-shadow .3s;
+}
+/* locked state */
+.aud.locked {
+  border-color:rgba(255,59,95,.15);
+  background:rgba(20,0,5,.6);
+}
+/* unlocked idle */
+.aud.idle {
+  border-color:rgba(125,255,90,.12);
+}
+/* playing */
+.aud.playing {
+  border-color:rgba(125,255,90,.4);
+  box-shadow:0 0 24px rgba(125,255,90,.1), inset 0 0 20px rgba(125,255,90,.04);
+}
+ 
+.aud-shine {
+  position:absolute; inset:0; pointer-events:none; border-radius:var(--r10);
+  background:transparent; transition:background .4s;
+}
+.aud.playing .aud-shine {
+  background:radial-gradient(ellipse 80% 40% at 50% 0%, rgba(125,255,90,.06), transparent);
+}
+ 
+/* lock overlay (shown when locked) */
+.aud-lock-overlay {
+  position:absolute; inset:0; border-radius:var(--r10);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:6px;
+  background:rgba(0,0,0,.78); z-index:5;
+  transition:opacity .4s;
+}
+.aud.idle .aud-lock-overlay,
+.aud.playing .aud-lock-overlay { opacity:0; pointer-events:none; }
+.aud.locked .aud-lock-overlay { opacity:1; }
+ 
+.lock-icon { opacity:.55; }
+.lock-txt  { font-family:var(--D); font-size:8px; letter-spacing:3px; color:var(--r); text-align:center; line-height:1.6; }
+.lock-sub  { font-size:7px; letter-spacing:2px; color:rgba(255,59,95,.45); text-align:center; }
+ 
+/* track display */
+.aud-track { display:flex; align-items:center; gap:10px; margin-top:4px; }
+.aud-num {
+  font-family:var(--D); font-size:28px; font-weight:900; color:var(--g);
+  text-shadow:0 0 12px rgba(125,255,90,.4); line-height:1; min-width:34px; text-align:center;
+  transition:text-shadow .3s;
+}
+.aud.playing .aud-num {
+  text-shadow:0 0 28px var(--g), 0 0 50px rgba(125,255,90,.3);
+  animation:numpulse 1.2s ease infinite;
+}
+@keyframes numpulse { 50%{ text-shadow:0 0 10px var(--g); } }
+ 
+.aud-info { flex:1; min-width:0; }
+.aud-name { font-size:8px; letter-spacing:1px; color:rgba(125,255,90,.65);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.aud-state { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.3); margin-top:3px; transition:color .2s; }
+.aud.playing .aud-state { color:var(--amb); }
+ 
+/* progress bar */
+.aud-bar { width:100%; height:2px; background:rgba(125,255,90,.08); border-radius:999px; overflow:hidden; margin-top:8px; }
+.aud-fill { height:100%; background:var(--g); border-radius:999px; width:0%; transition:width .25s linear; }
+.aud.playing .aud-fill { box-shadow:0 0 6px var(--g); }
+ 
+/* debounce ring */
+.aud-ready { display:flex; align-items:center; gap:7px; margin-top:7px; }
+.db-ring { width:16px; height:16px; flex-shrink:0; }
+.db-ring circle { transition:stroke-dashoffset .08s linear; }
+.db-txt { font-size:7px; letter-spacing:2px; }
+.aud.idle    .db-txt { color:rgba(125,255,90,.45); }
+.aud.playing .db-txt { color:rgba(255,184,48,.6); }
+ 
+/* ── FPS graph ── */
+.fps-box { }
+.fps-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; }
+.fps-num { font-family:var(--D); font-size:16px; font-weight:700; color:var(--g);
+  text-shadow:0 0 8px var(--g); letter-spacing:1px; }
+.fps-unit { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.35); margin-left:2px; }
+canvas#fpsc { width:100%; height:32px; display:block; image-rendering:pixelated; }
+ 
+/* ── gesture icons ── */
+.gi-row { display:flex; gap:5px; margin-top:7px; }
+.gi {
+  flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:7px 3px;
+  border-radius:var(--r6); border:1px solid rgba(125,255,90,.06); background:rgba(0,0,0,.18);
+  font-size:6px; letter-spacing:2px; color:rgba(125,255,90,.22);
+  transition:border-color .2s, background .2s, color .2s;
+}
+.gi svg { opacity:.22; transition:opacity .2s, filter .2s; }
+.gi.act { border-color:rgba(125,255,90,.3); background:rgba(125,255,90,.05); color:var(--g); }
+.gi.act svg { opacity:1; filter:drop-shadow(0 0 3px var(--g)); }
+ 
+/* ── waveform ── */
+canvas#wave { width:100%; height:32px; display:block; image-rendering:pixelated; }
+ 
+/* ── coords ── */
+.coord-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-top:5px; }
+.coord-cell { text-align:center; }
+.coord-k { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.22); margin-bottom:2px; }
+.coord-v { font-family:var(--D); font-size:9px; font-weight:700; color:var(--teal); letter-spacing:.5px; }
+ 
+/* ── log ── */
+.log-box {
+  flex:1; display:flex; flex-direction:column; min-height:0;
+  border:1px solid rgba(125,255,90,.06); background:rgba(0,0,0,.45);
+  border-radius:var(--r10); overflow:hidden;
+}
+.log-hd {
+  display:flex; align-items:center; justify-content:space-between; padding:5px 9px;
+  border-bottom:1px solid rgba(125,255,90,.06); font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.26);
+  flex-shrink:0;
+}
+.log-dot { width:4px; height:4px; border-radius:50%; background:var(--g); box-shadow:0 0 4px var(--g); animation:blink 1.8s step-start infinite; }
+.log-body {
+  flex:1; overflow-y:auto; padding:6px 9px; font-size:8px; letter-spacing:.3px;
+  color:rgba(93,255,149,.55); line-height:1.85;
+  scrollbar-width:thin; scrollbar-color:rgba(125,255,90,.08) transparent;
+}
+.le { display:flex; gap:6px; }
+.lt { color:rgba(125,255,90,.18); white-space:nowrap; flex-shrink:0; }
+ 
+/* ══════════════════════════════════════════
+   CENTER — VIEWER
+══════════════════════════════════════════ */
+.viewer { position:relative; overflow:hidden; min-width:0; }
+ 
+/* topbar */
+.tb {
+  position:absolute; top:0; left:0; right:0; height:54px; z-index:20;
+  background:linear-gradient(180deg, rgba(0,0,0,.88), transparent);
+  display:flex; align-items:center; justify-content:space-between; padding:0 16px;
+  border-bottom:1px solid rgba(125,255,90,.05);
+}
+.tb-title {
+  font-family:var(--D); font-size:11px; font-weight:700; color:var(--g);
+  letter-spacing:4px; text-shadow:0 0 8px var(--g); position:relative;
+}
+.tb-title::before {
+  content:attr(data-t); position:absolute; left:0; top:0;
+  color:#ff3b5f; clip-path:polygon(0 0,100% 0,100% 45%,0 45%); animation:glitch1 6s infinite;
+}
+.tb-sub { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.24); margin-top:2px; }
+.tc-id  { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.36); margin-bottom:2px; }
+.tc-live {
+  display:flex; align-items:center; gap:5px; font-size:7px; letter-spacing:3px; color:var(--r);
+}
+.tc-live::before {
+  content:""; width:5px; height:5px; border-radius:50%; background:var(--r);
+  box-shadow:0 0 4px var(--r); animation:blink .88s step-start infinite;
+}
+.tb-clock { font-family:var(--D); font-size:15px; color:rgba(125,255,90,.75); letter-spacing:1px; text-align:right; }
+.tb-date  { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.24); }
+ 
+/* bottombar */
+.bb {
+  position:absolute; bottom:0; left:0; right:0; height:42px; z-index:20;
+  background:linear-gradient(0deg, rgba(0,0,0,.88), transparent);
+  display:flex; align-items:center; justify-content:space-between; padding:0 16px;
+  border-top:1px solid rgba(125,255,90,.05);
+}
+.bb-txt { font-size:8px; letter-spacing:2px; color:rgba(125,255,90,.26); }
+.warn {
+  display:flex; align-items:center; gap:5px; font-family:var(--D); font-size:8px;
+  letter-spacing:3px; color:var(--r); animation:warnblink .95s step-start infinite;
+}
+@keyframes warnblink { 50%{ opacity:.2; } }
+ 
+/* ── VIDEO + CANVAS ──
+   The trick: video is absolutely positioned behind canvas.
+   Canvas draws the video frame with green tint + landmarks on top.
+   Both fill the panel. Video stays hidden (used as texture source).
+   We draw it manually onto canvas so we can apply filters + overlays. */
+video#webcam {
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover;
+  /* mirrored to match selfie-mode */
+  transform:scaleX(-1);
+  opacity:0; /* hidden — we draw it onto canvas */
+  pointer-events:none;
+}
+canvas#cam {
+  position:absolute; inset:0; width:100%; height:100%;
+  object-fit:cover; display:block;
+}
+ 
+/* HUD overlay */
+.hud { position:absolute; inset:0; pointer-events:none; z-index:5; }
+.corner { position:absolute; width:44px; height:44px; border-color:var(--g); border-style:solid; opacity:.5; }
+.corner::before { content:""; position:absolute; width:4px; height:4px; border-radius:50%;
+  background:var(--g); box-shadow:0 0 5px var(--g); }
+.ctlr { top:12px; left:12px; border-width:2px 0 0 2px; } .ctlr::before { top:-2px; left:-2px; }
+.ctrr { top:12px; right:12px; border-width:2px 2px 0 0; } .ctrr::before { top:-2px; right:-2px; }
+.cblr { bottom:12px; left:12px; border-width:0 0 2px 2px; } .cblr::before { bottom:-2px; left:-2px; }
+.cbrr { bottom:12px; right:12px; border-width:0 2px 2px 0; } .cbrr::before { bottom:-2px; right:-2px; }
+.hud-hr { position:absolute; left:12px; right:12px; height:1px; background:rgba(125,255,90,.04); }
+.hud-hr.t { top:65px; } .hud-hr.b { bottom:52px; }
+ 
+/* center ring */
+.ring {
+  position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+  width:160px; height:160px; border-radius:50%;
+  border:1px solid rgba(125,255,90,.1);
+  animation:ringpulse 5s ease infinite; pointer-events:none;
+}
+.ring::before {
+  content:""; position:absolute; inset:14px; border-radius:50%;
+  border:1px dashed rgba(125,255,90,.06); animation:ringspin 28s linear infinite;
+}
+.ring::after {
+  content:""; position:absolute; inset:28px; border-radius:50%;
+  border:1px solid rgba(125,255,90,.04);
+}
+@keyframes ringpulse { 50%{ transform:translate(-50%,-50%) scale(1.04); opacity:.7; } }
+@keyframes ringspin  { to { transform:rotate(360deg); } }
+.xhair { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:18px; height:18px; pointer-events:none; }
+.xhair::before,.xhair::after { content:""; position:absolute; background:rgba(125,255,90,.3); }
+.xhair::before { width:1px; height:100%; left:50%; top:0; }
+.xhair::after  { height:1px; width:100%; top:50%; left:0; }
+.scanline {
+  position:absolute; left:0; width:100%; height:2px;
+  background:linear-gradient(90deg, transparent, rgba(125,255,90,.45), transparent);
+  opacity:.2; animation:scan 9s linear infinite; pointer-events:none;
+}
+@keyframes scan { from{ top:-4%; } to{ top:106%; } }
+ 
+/* gesture label tag on camera */
+.gtag {
+  position:absolute; z-index:50;
+  background:rgba(0,0,0,.88); border:1px solid var(--g);
+  padding:5px 11px; border-radius:5px; color:var(--g);
+  font-family:var(--D); font-size:8px; letter-spacing:3px;
+  transform:translate(-50%,-170%);
+  display:none; white-space:nowrap;
+  box-shadow:0 0 14px rgba(125,255,90,.15);
+}
+.gtag::after {
+  content:""; position:absolute; bottom:-5px; left:50%; transform:translateX(-50%);
+  width:1px; height:6px; background:rgba(125,255,90,.4);
+}
+ 
+/* camera locked overlay — full viewer when LOCKED */
+.cam-lock-mask {
+  position:absolute; inset:0; z-index:15; pointer-events:none;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
+  background:rgba(0,0,0,.55);
+  transition: opacity .5s;
+}
+.cam-lock-mask.hidden { opacity:0; pointer-events:none; }
+.cam-lock-icon { opacity:.5; animation:lockpulse 2s ease infinite; }
+@keyframes lockpulse { 50%{ opacity:.25; transform:scale(1.06); } }
+.cam-lock-title {
+  font-family:var(--D); font-size:14px; font-weight:700; letter-spacing:5px; color:var(--r);
+  text-shadow:0 0 16px rgba(255,59,95,.4);
+}
+.cam-lock-sub { font-size:9px; letter-spacing:3px; color:rgba(255,59,95,.45); }
+ 
+/* audio flash pop */
+.audioflash {
+  position:absolute; inset:0; z-index:8; pointer-events:none;
+  background:rgba(125,255,90,0); transition:background .06s;
+}
+.audioflash.pop { background:rgba(125,255,90,.07); }
+ 
+/* ══════════════════════════════════════════
+   RIGHT SIDEBAR
+══════════════════════════════════════════ */
+.rsb { padding:12px 11px; display:flex; flex-direction:column; gap:7px; overflow:hidden; }
+ 
+canvas#lmv { width:100%; height:120px; display:block; }
+canvas#rad  { width:100%; height:105px; display:block; }
+ 
+/* finger bars */
+.fbars { display:flex; flex-direction:column; gap:5px; margin-top:6px; }
+.fb { display:flex; align-items:center; gap:6px; }
+.fb-lbl { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.28); width:36px; flex-shrink:0; }
+.fb-track { flex:1; height:3px; background:rgba(255,255,255,.05); border-radius:999px; overflow:hidden; }
+.fb-fill { height:100%; border-radius:999px; background:rgba(125,255,90,.16); transition:width .12s ease; }
+.fb-fill.up { background:var(--g); box-shadow:0 0 5px var(--g); }
+.fb-val { font-size:7px; color:rgba(125,255,90,.28); width:16px; text-align:right; }
+ 
+/* gesture history */
+.gh-list {
+  display:flex; flex-direction:column; gap:3px; margin-top:6px;
+  overflow-y:auto; max-height:calc(100% - 22px);
+  scrollbar-width:thin; scrollbar-color:rgba(125,255,90,.08) transparent;
+}
+.gh-item {
+  display:flex; justify-content:space-between; align-items:center;
+  padding:4px 6px; border-radius:4px; background:rgba(0,0,0,.2);
+  border-left:2px solid rgba(125,255,90,.12);
+}
+.gh-item.new { border-left-color:var(--g); background:rgba(125,255,90,.04); }
+.gh-g { font-size:8px; letter-spacing:1px; color:rgba(125,255,90,.58); }
+.gh-t { font-size:7px; color:rgba(125,255,90,.2); }
+ 
+/* session info */
+.ri-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
+.ri-row:last-child { margin:0; }
+.ri-k { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.22); }
+.ri-v { font-size:8px; letter-spacing:1px; color:rgba(125,255,90,.52); }
+#weyland-logo{
+    position:fixed;
+    top:20px;
+    right:20px;
+    width:180px;
+    height:180px;
+    z-index:99999;
 
-body{
+    perspective:1000px;
 
-    margin:0;
-
-    background:#000;
-
-    font-family:'Courier New', monospace;
-
-    color:#00ff66;
-
-    overflow:hidden;
-
+    pointer-events:none;
 }
 
- 
-
-.container{
-
-    display:flex;
-
-    height:100vh;
-
-}
-
- 
-
-.panel{
-
-    width:320px;
-
-    background:#050505;
-
-    border-right:2px solid #00ff66;
-
-    padding:20px;
-
-}
-
- 
-
-.box{
-
-    border:1px solid #00ff66;
-
-    padding:10px;
-
-    margin-bottom:10px;
-
-    background:rgba(0,255,102,0.08);
-
-}
-
- 
-
-button{
-
+#weyland-logo img{
     width:100%;
-
-    padding:15px;
-
-    margin-top:10px;
-
-    background:#00ff66;
-
-    color:#000;
-
-    border:none;
-
-    font-weight:bold;
-
-    cursor:pointer;
-
-    font-size:16px;
-
-}
-
- 
-
-.video-area{
-
-    flex:1;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    background:radial-gradient(#001a0d,#000);
-
-}
-
- 
-
-.frame{
-
-    position:relative;
-
-    width:720px;
-
-    height:540px;
-
-    border:2px solid #00ff66;
-
-    box-shadow:0 0 30px #00ff66;
-
-    overflow:hidden;
-
-}
-
- 
-
-#video{
-
-    position:absolute;
-
-    width:100%;
-
     height:100%;
+    object-fit:contain;
 
-    object-fit:cover;
+    filter:
+        drop-shadow(0 0 10px rgba(125,255,90,.8))
+        drop-shadow(0 0 25px rgba(125,255,90,.4));
 
-    z-index:1;
+    animation:
+        wySpin 10s linear infinite,
+        wyFloat 4s ease-in-out infinite;
 
+    transform-style:preserve-3d;
 }
 
- 
+@keyframes wySpin{
 
-#canvas{
+    0%{
+        transform:
+            rotateY(0deg)
+            rotateX(10deg);
+    }
 
-    position:absolute;
+    25%{
+        transform:
+            rotateY(90deg)
+            rotateX(-10deg);
+    }
 
-    width:100%;
+    50%{
+        transform:
+            rotateY(180deg)
+            rotateX(10deg);
+    }
 
-    height:100%;
+    75%{
+        transform:
+            rotateY(270deg)
+            rotateX(-10deg);
+    }
 
-    z-index:2;
-
+    100%{
+        transform:
+            rotateY(360deg)
+            rotateX(10deg);
+    }
 }
 
- 
+@keyframes wyFloat{
 
-h2{
+    0%,100%{
+        top:0;
+    }
 
-    text-align:center;
-
+    50%{
+        top:-10px;
+    }
 }
-
 </style>
-
 </head>
-
- 
-
 <body>
-
  
-
-<div class="container">
-
+<div class="grid"></div>
  
-
-    <div class="panel">
-
- 
-
-        <h2>EV3 CORE</h2>
-
- 
-
-        <div class="box" id="status">
-
-            STATUS: OFFLINE
-
-        </div>
-
- 
-
-        <div class="box" id="gesture">
-
-            GESTURE: NONE
-
-        </div>
-
- 
-
-        <div class="box" id="motor">
-
-            POWER: 0
-
-        </div>
-
- 
-
-        <button onclick="startCamera()">
-
-            ATIVAR CAMERA
-
-        </button>
-
- 
-
-        <button onclick="connectEV3()">
-
-            CONECTAR EV3
-
-        </button>
-
- 
-
+<!-- ═══════════ BOOT ═══════════ -->
+<div id="boot">
+  <div class="bx">
+    <div class="bx-rule"></div>
+    <img class="bx-logo" src="WY-removebg-preview.png" alt="WY">
+    <div class="bx-corp">WEYLAND-YUTANI CORPORATION</div>
+    <div class="bx-title" data-t="XENO_VISION">XENO_VISION</div>
+    <div class="bx-sub">BIOSCAN MODULE v4.2.1 // CLASSIFIED</div>
+    <div class="bx-plabs">
+      <span id="bstep">INITIALIZING…</span>
+      <span id="bpct">0%</span>
     </div>
-
- 
-
-    <div class="video-area">
-
- 
-
-        <div class="frame">
-
- 
-
-            <video id="video" playsinline></video>
-
- 
-
-            <canvas id="canvas" width="720" height="540"></canvas>
-
- 
-
-        </div>
-
- 
-
-    </div>
-
- 
-
+    <div class="loader"></div>
+    <div class="bx-log" id="blog"></div>
+    <div class="bx-prompt">▸ SHOW OPEN HAND TO AUTHORIZE</div>
+    <div class="bx-rule" style="margin-top:24px"></div>
+  </div>
 </div>
-
  
-
-<!-- MEDIAPIPE -->
-
+<!-- ═══════════ APP ═══════════ -->
+<div class="app">
+ 
+  <!-- ── LEFT SIDEBAR ── -->
+  <aside class="panel lsb">
+ 
+  <div class="lh">
+  <div class="lh-eye">UNIT NODE</div>
+  <div class="lh-h1">XENO_NODE</div>
+  <div class="lh-tag">BUILDING BETTER WORLDS™</div>
+  
+  <button id="btn-arduino" style="margin-top:10px; width:100%; background:transparent; color:var(--g); border:1px solid var(--g); padding:6px 12px; font-family:var(--D); font-size:10px; font-weight:bold; cursor:pointer; border-radius:4px; transition: 0.3s; letter-spacing: 2px;">
+    [ CONECTAR ARDUINO ]
+  </button>
+</div>
+ 
+    <!-- status grid -->
+    <div class="mcg">
+      <div class="mc">
+        <div class="label">STATUS</div>
+        <div class="val-lg cg"><span class="dot" id="sdot"></span><span id="sys-status">OFFLINE</span></div>
+        <div class="val-sm" id="sys-sub">WAITING FEED</div>
+      </div>
+      <div class="mc">
+        <div class="label">FEED</div>
+        <div class="val-lg ca" id="feed-state">IDLE</div>
+        <div class="sig" id="sig"><span></span><span></span><span></span><span></span></div>
+      </div>
+      <div class="mc">
+        <div class="label">SESSION</div>
+        <div class="val-lg cd" id="sess-id">—</div>
+        <div class="val-sm" id="sess-time">00:00</div>
+      </div>
+      <div class="mc">
+        <div class="label">FRAMES</div>
+        <div class="val-lg cd" id="frame-ct">0</div>
+        <div class="val-sm">PROCESSED</div>
+      </div>
+    </div>
+ 
+    <!-- ═══ AUDIO SEQUENCER ═══ -->
+    <div class="aud locked" id="audPanel">
+      <div class="aud-shine"></div>
+ 
+      <!-- lock overlay (pre-unlock) -->
+      <div class="aud-lock-overlay">
+        <svg class="lock-icon" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#ff3b5f" stroke-width="1.5">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+        </svg>
+        <div class="lock-txt">SEQUENCER LOCKED</div>
+        <div class="lock-sub">OPEN HAND TO AUTHORIZE</div>
+      </div>
+ 
+      <div class="label">AUDIO SEQUENCE</div>
+      <div class="aud-track">
+        <div id="aud-num" class="aud-num">01</div>
+        <div class="aud-info">
+          <div class="aud-name" id="aud-name">Sounds/1.mp3</div>
+          <div class="aud-state" id="aud-state">STANDBY</div>
+        </div>
+      </div>
+      <div class="aud-bar">
+        <div class="aud-fill" id="aud-fill"></div>
+      </div>
+      <div class="aud-ready">
+        <svg class="db-ring" viewBox="0 0 16 16">
+          <circle cx="8" cy="8" r="6" fill="none" stroke="rgba(125,255,90,.1)" stroke-width="1.5"/>
+          <circle id="dbCircle" cx="8" cy="8" r="6" fill="none" stroke="rgba(125,255,90,.55)"
+            stroke-width="1.5" stroke-dasharray="37.7" stroke-dashoffset="37.7"
+            transform="rotate(-90 8 8)" stroke-linecap="round"/>
+        </svg>
+        <span class="db-txt" id="db-txt">LOCKED</span>
+      </div>
+    </div>
+ 
+    <!-- FPS -->
+    <div class="subpanel fps-box">
+      <div class="fps-row">
+        <div class="label" style="margin:0">FRAME RATE</div>
+        <div><span class="fps-num" id="fps-num">—</span><span class="fps-unit">FPS</span></div>
+      </div>
+      <canvas id="fpsc" width="210" height="32"></canvas>
+    </div>
+ <div id="weyland-logo">
+    <img src="WY-removebg-preview.png" alt="Weyland-Yutani">
+</div>
+    <!-- gesture icons -->
+    <div class="subpanel">
+      <div class="label">GESTURE</div>
+      <div class="cg2" id="gest-name" style="font-family:var(--D);font-size:9px;letter-spacing:2px;margin-top:2px">NO HAND</div>
+      <div class="val-sm" id="gest-conf">CONFIDENCE —</div>
+      <div class="gi-row">
+        <div class="gi" id="gi-open">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
+            <path d="M18 11V6a2 2 0 0 0-4 0v5M14 10V4a2 2 0 0 0-4 0v6M10 10.5V6a2 2 0 0 0-4 0v8l-1.4-1.4A2 2 0 0 0 2 15l4 4a6 6 0 0 0 6 0 5 5 0 0 0 5-5v-2a2 2 0 0 0-4 0z"/>
+          </svg>OPEN
+        </div>
+        <div class="gi" id="gi-rock">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
+            <path d="M9 12V6a2 2 0 0 1 4 0v6M13 12V9a2 2 0 0 1 4 0v5a6 6 0 0 1-6 6H9a6 6 0 0 1-6-6v-2a2 2 0 0 1 4 0"/>
+          </svg>ROCK
+        </div>
+        <div class="gi" id="gi-peace">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
+            <path d="M9 12V5a2 2 0 0 1 4 0v7M13 12V9a2 2 0 0 1 4 0v5a6 6 0 0 1-12 0v-2a2 2 0 0 1 4 0v1"/>
+          </svg>PEACE
+        </div>
+        <div class="gi" id="gi-thumb">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
+            <path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
+          </svg>THUMB
+        </div>
+      </div>
+    </div>
+ 
+    <!-- waveform -->
+    <div class="subpanel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
+        <div class="label" style="margin:0">NEURAL SIGNAL</div>
+        <div class="val-sm" id="wave-hz">0.0 Hz</div>
+      </div>
+      <canvas id="wave" width="210" height="32"></canvas>
+    </div>
+ 
+    <!-- coords -->
+    <div class="subpanel">
+      <div class="label">TRACKING COORDINATES</div>
+      <div class="coord-grid">
+        <div class="coord-cell"><div class="coord-k">X</div><div class="coord-v" id="cx">—.———</div></div>
+        <div class="coord-cell"><div class="coord-k">Y</div><div class="coord-v" id="cy">—.———</div></div>
+        <div class="coord-cell"><div class="coord-k">Z</div><div class="coord-v" id="cz">—.———</div></div>
+      </div>
+    </div>
+ 
+    <!-- log -->
+    <div class="log-box">
+      <div class="log-hd"><span>SYS LOG</span><div class="log-dot"></div></div>
+      <div class="log-body" id="log"></div>
+    </div>
+ 
+  </aside>
+ 
+  <!-- ── CENTER VIEWER ── -->
+  <main class="panel viewer">
+ 
+    <div class="tb">
+      <div>
+        <div class="tb-title" data-t="WY // LIVE FEED">WY // LIVE FEED</div>
+        <div class="tb-sub">BIOMETRIC SCAN ACTIVE</div>
+      </div>
+      <div style="text-align:center">
+        <div class="tc-id" id="stream-id">STREAM: —</div>
+        <div class="tc-live">RECORDING</div>
+      </div>
+      <div>
+        <div class="tb-clock" id="clock">00:00:00</div>
+        <div class="tb-date" id="ddisp">—</div>
+      </div>
+    </div>
+ 
+    <!-- HUD decorations -->
+    <div class="hud">
+      <div class="corner ctlr"></div><div class="corner ctrr"></div>
+      <div class="corner cblr"></div><div class="corner cbrr"></div>
+      <div class="hud-hr t"></div><div class="hud-hr b"></div>
+      <div class="ring"><div class="xhair"></div></div>
+      <div class="scanline"></div>
+    </div>
+ 
+    <!-- gesture label -->
+    <div id="gtag" class="gtag">TRACKING</div>
+ 
+    <!-- camera locked mask (shown before unlock) -->
+    <div class="cam-lock-mask" id="camLockMask">
+      <svg class="cam-lock-icon" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#ff3b5f" stroke-width="1.2">
+        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+        <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+      </svg>
+      <div class="cam-lock-title">ACESSO NEGADO</div>
+      <div class="cam-lock-sub">MOSTRE A MÃO ABERTA PARA AUTORIZAR</div>
+    </div>
+ 
+    <!-- audio flash -->
+    <div class="audioflash" id="audioFlash"></div>
+ 
+    <!-- video source (hidden, fed into canvas) -->
+    <video id="webcam" autoplay playsinline muted></video>
+    <!-- canvas output -->
+    <canvas id="cam" width="1280" height="720"></canvas>
+ 
+    <div class="bb">
+      <div class="bb-txt" id="resol">—</div>
+      <div class="warn">
+        <svg width="9" height="9" viewBox="0 0 24 24" fill="#ff3b5f">
+          <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/>
+        </svg>
+        BIOHAZARD DETECTED
+      </div>
+      <div class="bb-txt" id="latency">LATENCY: — ms</div>
+    </div>
+ 
+  </main>
+ 
+  <!-- ── RIGHT SIDEBAR ── -->
+  <aside class="panel rsb">
+ 
+    <div class="subpanel">
+      <div class="label">LANDMARK 3D VIEW</div>
+      <canvas id="lmv" width="200" height="120"></canvas>
+    </div>
+ 
+    <div class="subpanel">
+      <div class="label">FINGER STATE</div>
+      <div class="fbars">
+        <div class="fb"><div class="fb-lbl">THUMB</div><div class="fb-track"><div class="fb-fill" id="fb0" style="width:0%"></div></div><div class="fb-val" id="fv0">—</div></div>
+        <div class="fb"><div class="fb-lbl">INDEX</div><div class="fb-track"><div class="fb-fill" id="fb1" style="width:0%"></div></div><div class="fb-val" id="fv1">—</div></div>
+        <div class="fb"><div class="fb-lbl">MIDDLE</div><div class="fb-track"><div class="fb-fill" id="fb2" style="width:0%"></div></div><div class="fb-val" id="fv2">—</div></div>
+        <div class="fb"><div class="fb-lbl">RING</div><div class="fb-track"><div class="fb-fill" id="fb3" style="width:0%"></div></div><div class="fb-val" id="fv3">—</div></div>
+        <div class="fb"><div class="fb-lbl">PINKY</div><div class="fb-track"><div class="fb-fill" id="fb4" style="width:0%"></div></div><div class="fb-val" id="fv4">—</div></div>
+      </div>
+    </div>
+ 
+    <div class="subpanel">
+      <div class="label">BIOMETRIC RADAR</div>
+      <canvas id="rad" width="200" height="105"></canvas>
+    </div>
+ 
+    <div class="subpanel" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
+      <div class="label">GESTURE HISTORY</div>
+      <div class="gh-list" id="ghlist"></div>
+    </div>
+ 
+    <div class="subpanel">
+      <div class="ri-row"><div class="ri-k">NODE ID</div><div class="ri-v" id="r-sid">—</div></div>
+      <div class="ri-row"><div class="ri-k">UPTIME</div><div class="ri-v" id="r-up">00:00</div></div>
+      <div class="ri-row"><div class="ri-k">DETECTIONS</div><div class="ri-v" id="r-det">0</div></div>
+      <div class="ri-row"><div class="ri-k">AUDIOS PLAYED</div><div class="ri-v" id="r-audio">0</div></div>
+    </div>
+ 
+  </aside>
+</div>
+ 
+<!-- ═══════════════════════════════════════
+     MediaPipe
+══════════════════════════════════════════ -->
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-
- 
-
 <script>
+  /* ═══════════════════════════════════════════════════
+   ARDUINO / WEB SERIAL API
+═══════════════════════════════════════════════════ */
+let serialPort;
+let serialWriter;
 
- 
+document.getElementById('btn-arduino').addEventListener('click', async () => {
+    try {
+        // Abre o popup do navegador para o usuário escolher a Porta COM
+        serialPort = await navigator.serial.requestPort();
+        await serialPort.open({ baudRate: 9600 }); // Ajuste se seu Arduino usar outro baudRate
+        
+        const textEncoder = new TextEncoderStream();
+        textEncoder.readable.pipeTo(serialPort.writable);
+        serialWriter = textEncoder.writable.getWriter();
 
-let hands;
-
-let camera;
-
- 
-
-const video = document.getElementById("video");
-
-const canvas = document.getElementById("canvas");
-
-const ctx = canvas.getContext("2d");
-
- 
-
-let port;
-
-let writer;
-
-let connected = false;
-
- 
-
-/* =========================
-
-   CONECTAR EV3
-
-========================= */
-
-async function connectEV3(){
-
- 
-
-    try{
-
- 
-
-        port = await navigator.serial.requestPort();
-
- 
-
-        await port.open({
-
-            baudRate:9600
-
-        });
-
- 
-
-        const encoder = new TextEncoderStream();
-
- 
-
-        encoder.readable.pipeTo(port.writable);
-
- 
-
-        writer = encoder.writable.getWriter();
-
- 
-
-        connected = true;
-
- 
-
-        document.getElementById("status").innerText =
-
-            "STATUS: ONLINE";
-
- 
-
-    }catch(err){
-
- 
-
-        console.error(err);
-
- 
-
-        alert("Erro ao conectar EV3");
-
- 
-
+        addLog('ARDUINO CONECTADO NA PORTA COM');
+        document.getElementById('sys-status').innerText = 'ARDUINO ON';
+        
+        // Estilo visual de botão ativado
+        const btn = document.getElementById('btn-arduino');
+        btn.style.background = 'var(--g)';
+        btn.style.color = '#000';
+        btn.innerText = '[ COM CONECTADA ]';
+    } catch (err) {
+        addLog('ERRO ARDUINO: ' + err.message);
     }
+});
 
-}
-
- 
-
-/* =========================
-
-   INIT MEDIAPIPE
-
-========================= */
-
-function initMediaPipe(){
-
- 
-
-    hands = new window.Hands({
-
- 
-
-        locateFile:(file)=>
-
-            `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
-
- 
-
-    });
-
- 
-
-    hands.setOptions({
-
- 
-
-        maxNumHands:1,
-
-        modelComplexity:1,
-
-        minDetectionConfidence:0.7,
-
-        minTrackingConfidence:0.7,
-
-        selfieMode:true
-
- 
-
-    });
-
- 
-
-    hands.onResults(onResults);
-
- 
-
-    camera = new window.Camera(video,{
-
- 
-
-        onFrame: async ()=>{
-
- 
-
-            await hands.send({
-
-                image:video
-
-            });
-
- 
-
-        },
-
- 
-
-        width:720,
-
-        height:540
-
- 
-
-    });
-
- 
-
-    camera.start();
-
-}
-
- 
-
-/* =========================
-
-   PROCESSAMENTO
-
-========================= */
-
-function onResults(results){
-
- 
-
-    ctx.clearRect(0,0,720,540);
-
- 
-
-    if(results.image){
-
- 
-
-        ctx.drawImage(
-
-            results.image,
-
-            0,
-
-            0,
-
-            720,
-
-            540
-
-        );
-
+// Função para enviar os dados para o Arduino
+async function send(data) {
+    if (serialWriter) {
+        await serialWriter.write(data + "\n");
+    } else {
+        console.warn('Arduino não conectado. Dado não enviado:', data);
     }
-
+}
+/* ═══════════════════════════════════════════════════
+   CONFIG — ajuste aqui
+═══════════════════════════════════════════════════ */
+const CFG = {
+  totalAudios : 4,
+  pastaSons   : 'Sounds/',
+  extensao    : '.mp3',
+  debounceMs  : 150,   // ms de mão aberta contínua para confirmar gesto
+};
  
-
-    if(results.multiHandLandmarks?.length){
-
+/* ═══════════════════════════════════════════════════
+   REFS
+═══════════════════════════════════════════════════ */
+const videoEl     = document.getElementById('webcam');
+const camCanvas   = document.getElementById('cam');
+const camCtx      = camCanvas.getContext('2d', { alpha:false, willReadFrequently:false });
+const gtagEl      = document.getElementById('gtag');
+const logBodyEl   = document.getElementById('log');
+const bootEl      = document.getElementById('boot');
+const sigEl       = document.getElementById('sig');
+const sdotEl      = document.getElementById('sdot');
+const audPanelEl  = document.getElementById('audPanel');
+const audNumEl    = document.getElementById('aud-num');
+const audNameEl   = document.getElementById('aud-name');
+const audStateEl  = document.getElementById('aud-state');
+const audFillEl   = document.getElementById('aud-fill');
+const dbCircleEl  = document.getElementById('dbCircle');
+const dbTxtEl     = document.getElementById('db-txt');
+const audioFlash  = document.getElementById('audioFlash');
+const camLockMask = document.getElementById('camLockMask');
  
-
-        const lm = results.multiHandLandmarks[0];
-
+/* ═══════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════ */
  
-
-        /* DESENHA MÃO */
-
-        window.drawConnectors(
-
-            ctx,
-
-            lm,
-
-            window.HAND_CONNECTIONS,
-
-            {
-
-                color:"#00ff66",
-
-                lineWidth:5
-
-            }
-
-        );
-
+/* LOCK STATES:
+   'boot'     — before open-hand (shows boot screen + cam-lock-mask)
+   'unlocked' — after first open-hand, sequencer active
+   'playing'  — audio currently playing, gestures locked
+*/
+let lockState = 'boot';
  
-
-        window.drawLandmarks(
-
-            ctx,
-
-            lm,
-
-            {
-
-                color:"#ffffff",
-
-                fillColor:"#00ff66",
-
-                radius:5
-
-            }
-
-        );
-
+let handsStarted   = false;
+let totalFrames    = 0;
+let detections     = 0;
+let sessStart      = null;
+let lastFrameT     = 0;
+let fps            = 0;
+let waveAmp        = 4;
+let waveTarget     = 4;
+let fpsHistory     = new Array(60).fill(0);
+let lastDomFlush   = 0;
  
-
-        /* =========================
-
-           DETECÇÃO DOS DEDOS
-
-        ========================= */
-
+// audio
+let audioIndex     = 1;
+let audiosPlayed   = 0;
+let progressTimer  = null;
  
-
-        const indexUp  = lm[8].y  < lm[6].y;
-
-        const middleUp = lm[12].y < lm[10].y;
-
-        const ringUp   = lm[16].y < lm[14].y;
-
-        const pinkyUp  = lm[20].y < lm[18].y;
-
+// debounce (open-hand)
+let handWasOpen          = false;
+let openHandStartTime    = 0;
  
+// other gesture cooldowns
+let rockCool  = false;
+let peaceCool = false;
+let thumbCool = false;
+let prevGesture = '';
 
-        /* quantidade dedos levantados */
+let currentAudio = 1;
+let currentLevel = 1;
+let playing = false;
 
-        const totalFingers =
-
-            indexUp +
-
-            middleUp +
-
-            ringUp +
-
-            pinkyUp;
-
+// single global audio player (prevents memory bloat)
+const player = new Audio();
  
-
-        /* mão aberta */
-
-        const openHand = totalFingers >= 3;
-
+/* ═══════════════════════════════════════════════════
+   SESSION ID
+═══════════════════════════════════════════════════ */
+const SID = 'WY-' + Math.random().toString(36).slice(2,7).toUpperCase();
+['sess-id','stream-id','r-sid'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.innerText = (id === 'stream-id' ? 'STREAM: ' : '') + SID;
+});
  
-
-        /* potência */
-
-        const power = openHand ? 100 : 0;
-
+/* ═══════════════════════════════════════════════════
+   BOOT LOG
+═══════════════════════════════════════════════════ */
+const BOOT_LINES = [
+  'LOADING MEDIAPIPE RUNTIME…',
+  'CALIBRATING NEURAL ARRAYS…',
+  'HAND TRACKER INITIALIZED',
+  'GESTURE MAP LOADED [4 GESTURES]',
+  `AUDIO SEQUENCER — ${CFG.totalAudios} TRACKS QUEUED`,
+  'BIOMETRIC MODULE ACTIVE',
+  'CAMERA SUBSYSTEM STANDBY',
+];
+let bi = 0;
+const bBlog  = document.getElementById('blog');
+const bStep  = document.getElementById('bstep');
+const bPct   = document.getElementById('bpct');
+const bTimer = setInterval(() => {
+  if (bi >= BOOT_LINES.length) { clearInterval(bTimer); return; }
+  const d = document.createElement('div');
+  d.innerText = '> ' + BOOT_LINES[bi++];
+  bBlog.appendChild(d);
+  bPct.innerText  = Math.round(bi / BOOT_LINES.length * 100) + '%';
+  bStep.innerText = BOOT_LINES[bi - 1];
+}, 360);
  
-
-        /* HUD */
-
-        document.getElementById("gesture").innerText =
-
-            openHand ? "GESTURE: OPEN HAND" :
-
-                       "GESTURE: CLOSED";
-
+/* ═══════════════════════════════════════════════════
+   CLOCK
+═══════════════════════════════════════════════════ */
+function tickClock() {
+  const n = new Date();
+  document.getElementById('clock').innerText = n.toLocaleTimeString('pt-BR', { hour12:false });
+  document.getElementById('ddisp').innerText = n.toLocaleDateString('pt-BR',
+    { day:'2-digit', month:'short', year:'numeric' }).toUpperCase();
+}
+tickClock();
+setInterval(tickClock, 1000);
+setInterval(() => {
+  if (!sessStart) return;
+  const s = Math.floor((Date.now() - sessStart) / 1000);
+  const t = pad(Math.floor(s/60)) + ':' + pad(s % 60);
+  document.getElementById('sess-time').innerText = t;
+  document.getElementById('r-up').innerText = t;
+}, 1000);
+const pad = n => String(n).padStart(2,'0');
  
-
-        document.getElementById("motor").innerText =
-
-            "POWER: " + power;
-
+/* ═══════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════ */
+const setTxt = (id, v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
  
-
-        /* TEXTO NA TELA */
-
-        ctx.font = "40px Courier New";
-
+function addLog(msg) {
+  const ts = new Date().toLocaleTimeString('pt-BR', { hour12:false });
+  const d  = document.createElement('div');
+  d.className = 'le';
+  d.innerHTML = `<span class="lt">${ts}</span><span>&gt; ${msg}</span>`;
+  logBodyEl.prepend(d);
+  while (logBodyEl.children.length > 60) logBodyEl.removeChild(logBodyEl.lastChild);
+}
  
-
-        ctx.fillStyle = "#00ff66";
-
+/* ═══════════════════════════════════════════════════
+   GESTURE ICONS
+═══════════════════════════════════════════════════ */
+const GI_IDS = {
+  'OPEN HAND':'gi-open',
+  'ROCK':'gi-rock',
+  'PEACE':'gi-peace',
+  'THUMB UP':'gi-thumb',
+  'THUMB DOWN':'gi-thumb'
+};
+let lastGI = null;
+function setGestureIcon(name) {
+  if (lastGI === name) return;
+  if (lastGI && GI_IDS[lastGI]) document.getElementById(GI_IDS[lastGI])?.classList.remove('act');
+  lastGI = name;
+  if (name && GI_IDS[name]) document.getElementById(GI_IDS[name])?.classList.add('act');
+}
  
-
-        ctx.fillText(
-
-            openHand ? "MOTOR ON" : "MOTOR OFF",
-
-            20,
-
-            50
-
-        );
-
+/* ═══════════════════════════════════════════════════
+   GESTURE HISTORY
+═══════════════════════════════════════════════════ */
+const ghListEl = document.getElementById('ghlist');
+function pushHistory(g) {
+  const ts = new Date().toLocaleTimeString('pt-BR', { hour12:false });
+  const d  = document.createElement('div');
+  d.className = 'gh-item new';
+  d.innerHTML = `<span class="gh-g">${g}</span><span class="gh-t">${ts}</span>`;
+  ghListEl.prepend(d);
+  setTimeout(() => d.classList.remove('new'), 1200);
+  while (ghListEl.children.length > 30) ghListEl.removeChild(ghListEl.lastChild);
+}
  
-
-        /* ENVIA PARA EV3 */
-
-        if(connected && writer){
-
+/* ═══════════════════════════════════════════════════
+   FINGER BARS
+═══════════════════════════════════════════════════ */
+function updateFingerBars(states) {
+  states.forEach((up, i) => {
+    const fill = document.getElementById(`fb${i}`);
+    const val  = document.getElementById(`fv${i}`);
+    if (!fill || !val) return;
+    fill.style.width = (up ? 100 : 16) + '%';
+    fill.classList.toggle('up', up);
+    val.innerText = up ? 'UP' : 'DN';
+  });
+}
  
-
-            writer.write(`A:${power}\n`);
-
+/* ═══════════════════════════════════════════════════
+   DEBOUNCE RING
+═══════════════════════════════════════════════════ */
+const DB_CIRC = 37.7;
+function setDbRing(progress /* 0–1 */) {
+  dbCircleEl.style.strokeDashoffset = DB_CIRC * (1 - progress);
+}
  
+/* ═══════════════════════════════════════════════════
+   AUDIO PANEL STATE
+═══════════════════════════════════════════════════ */
+function updateAudDisplay() {
+  audNumEl.innerText  = pad(audioIndex);
+  audNameEl.innerText = `${CFG.pastaSons}${audioIndex}${CFG.extensao}`;
+}
+ 
+function setAudPanelState(state /* 'locked'|'idle'|'playing' */) {
+  audPanelEl.classList.remove('locked','idle','playing');
+  audPanelEl.classList.add(state);
+ 
+  if (state === 'locked') {
+    audStateEl.innerText = 'LOCKED';
+    dbTxtEl.innerText    = 'LOCKED';
+    setDbRing(0);
+  } else if (state === 'idle') {
+    audStateEl.innerText = 'STANDBY';
+    dbTxtEl.innerText    = 'READY — OPEN HAND TO PLAY';
+    setDbRing(1);
+    audFillEl.style.width = '0%';
+    clearInterval(progressTimer);
+  } else if (state === 'playing') {
+    audStateEl.innerText = 'REPRODUZINDO…';
+    dbTxtEl.innerText    = 'GESTO BLOQUEADO';
+    setDbRing(0);
+  }
+}
+ 
+/* ═══════════════════════════════════════════════════
+   AUDIO PLAYER
+═══════════════════════════════════════════════════ */
+player.onended = () => {
+  lockState = 'unlocked';
+  setAudPanelState('idle');
+  addLog('AUDIO FINISHED — SEQUENCER READY');
+};
+player.onerror = () => {
+  lockState = 'unlocked';
+  setAudPanelState('idle');
+  addLog('AUDIO ERROR — CHECK FILE PATH');
+};
+ 
+function playNextAudio() {
+  // Se o player já estiver tocando, interrompe imediatamente
+  if (!player.paused) {
+      player.pause();
+      player.currentTime = 0;
+  }
 
+  lockState = 'playing';
+  audiosPlayed++;
+  setAudPanelState('playing');
+  setTxt('r-audio', audiosPlayed);
+ 
+  const path = `${CFG.pastaSons}${audioIndex}${CFG.extensao}`;
+  addLog(`AUDIO DISPATCH: ${path}`);
+ 
+  // flash overlay on camera
+  audioFlash.classList.add('pop');
+  setTimeout(() => audioFlash.classList.remove('pop'), 180);
+ 
+  player.src = path;
+  player.play()
+    .then(() => {
+      clearInterval(progressTimer);
+      progressTimer = setInterval(() => {
+        if (!player.duration) return;
+        audFillEl.style.width = (player.currentTime / player.duration * 100) + '%';
+      }, 80);
+    })
+    .catch(err => {
+      console.warn('Audio blocked:', err);
+      lockState = 'unlocked';
+      setAudPanelState('idle');
+      addLog('AUDIO BLOCKED — CLICK PAGE FIRST');
+    });
+
+  // ENVIA O NÍVEL ATUAL PARA O ARDUINO
+  send(String(audioIndex));
+ 
+  audioIndex = (audioIndex % CFG.totalAudios) + 1;
+  updateAudDisplay();
+}
+ 
+/* ═══════════════════════════════════════════════════
+   FPS GRAPH (rAF loop)
+═══════════════════════════════════════════════════ */
+(function fpsLoop() {
+  const c = document.getElementById('fpsc');
+  const x = c.getContext('2d', { alpha:false });
+  const W = c.width, H = c.height;
+  function draw() {
+    x.fillStyle = 'rgba(0,0,0,.65)'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = 'rgba(125,255,90,.1)'; x.lineWidth = 1;
+    [15, 30, 60].forEach(v => {
+      const y = H - Math.min(v / 65, 1) * H;
+      x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke();
+    });
+    const step = W / fpsHistory.length;
+    x.beginPath();
+    fpsHistory.forEach((v, i) => {
+      const px = i * step, py = H - Math.min(v / 65, 1) * H;
+      i === 0 ? x.moveTo(px, py) : x.lineTo(px, py);
+    });
+    x.strokeStyle = 'rgba(125,255,90,.7)'; x.lineWidth = 1.5; x.stroke();
+    x.lineTo(W, H); x.lineTo(0, H); x.closePath();
+    x.fillStyle = 'rgba(125,255,90,.05)'; x.fill();
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+ 
+/* ═══════════════════════════════════════════════════
+   WAVEFORM (rAF loop)
+═══════════════════════════════════════════════════ */
+(function waveLoop() {
+  const c = document.getElementById('wave');
+  const x = c.getContext('2d', { alpha:false });
+  const W = c.width, H = c.height;
+  let phase = 0, hzPhase = 0;
+  function draw() {
+    waveAmp += (waveTarget - waveAmp) * 0.07;
+    hzPhase += 0.05;
+    x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
+    x.strokeStyle = 'rgba(125,255,90,.62)'; x.lineWidth = 1.4;
+    x.shadowColor = 'rgba(125,255,90,.3)'; x.shadowBlur = 3;
+    x.beginPath();
+    for (let i = 0; i < W; i++) {
+      const t = (i / W) * Math.PI * 8 + phase;
+      const y = H/2 + Math.sin(t) * waveAmp + Math.sin(t * 2.2 + 1.4) * waveAmp * .35;
+      i === 0 ? x.moveTo(i, y) : x.lineTo(i, y);
+    }
+    x.stroke(); x.shadowBlur = 0;
+    phase += 0.07;
+    setTxt('wave-hz', (Math.abs(waveAmp * 1.2) + Math.sin(hzPhase) * 1.5).toFixed(1) + ' Hz');
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+ 
+/* ═══════════════════════════════════════════════════
+   RADAR (rAF loop)
+═══════════════════════════════════════════════════ */
+(function radarLoop() {
+  const c = document.getElementById('rad');
+  const x = c.getContext('2d', { alpha:false });
+  const W = c.width, H = c.height;
+  const CX = W/2, CY = H/2, RX = W/2 - 4, RY = H/2 - 4;
+  let ang = 0;
+  let blips = [{ bx: CX+45, by: CY-18, age:0 }, { bx: CX-28, by: CY+22, age:55 }];
+  setInterval(() => {
+    blips.push({ bx: CX+(Math.random()-.5)*RX*1.5, by: CY+(Math.random()-.5)*RY*1.5, age:0 });
+    if (blips.length > 6) blips.shift();
+  }, 2800);
+  function draw() {
+    x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
+    [1, .65, .35].forEach(f => {
+      x.beginPath(); x.ellipse(CX, CY, RX*f, RY*f, 0, 0, Math.PI*2);
+      x.strokeStyle = 'rgba(125,255,90,.07)'; x.lineWidth = 1; x.stroke();
+    });
+    x.strokeStyle = 'rgba(125,255,90,.06)'; x.lineWidth = 1;
+    x.beginPath(); x.moveTo(4, CY); x.lineTo(W-4, CY); x.stroke();
+    x.beginPath(); x.moveTo(CX, 4); x.lineTo(CX, H-4); x.stroke();
+    const rad  = (ang-90)*Math.PI/180;
+    const rad0 = ((ang-35)-90)*Math.PI/180;
+    const ex   = CX + RX * Math.cos(rad), ey = CY + RY * Math.sin(rad);
+    const grad = x.createLinearGradient(CX, CY, ex, ey);
+    grad.addColorStop(0, 'rgba(125,255,90,0)'); grad.addColorStop(1, 'rgba(125,255,90,.12)');
+    x.beginPath(); x.moveTo(CX, CY); x.ellipse(CX, CY, RX, RY, 0, rad0, rad); x.closePath();
+    x.fillStyle = grad; x.fill();
+    x.beginPath(); x.moveTo(CX, CY); x.lineTo(ex, ey);
+    x.strokeStyle = 'rgba(125,255,90,.55)'; x.lineWidth = 1.5; x.stroke();
+    blips.forEach(b => {
+      b.age++;
+      const a = Math.max(0, 1 - b.age / 80);
+      x.beginPath(); x.arc(b.bx, b.by, 2.5, 0, Math.PI*2);
+      x.fillStyle = `rgba(125,255,90,${a})`; x.fill();
+      if (a > 0.5) {
+        x.beginPath(); x.arc(b.bx, b.by, 5, 0, Math.PI*2);
+        x.strokeStyle = `rgba(125,255,90,${(a-.5)*.35})`; x.lineWidth = 1; x.stroke();
+      }
+    });
+    ang = (ang + 1.1) % 360;
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+ 
+/* ═══════════════════════════════════════════════════
+   LANDMARK 3D (rAF loop)
+═══════════════════════════════════════════════════ */
+let currentLM = null;
+(function lmvLoop() {
+  const c = document.getElementById('lmv');
+  const x = c.getContext('2d', { alpha:false });
+  const W = c.width, H = c.height;
+  const CONN = [
+    [0,1],[1,2],[2,3],[3,4],
+    [0,5],[5,6],[6,7],[7,8],
+    [0,9],[9,10],[10,11],[11,12],
+    [0,13],[13,14],[14,15],[15,16],
+    [0,17],[17,18],[18,19],[19,20],
+    [5,9],[9,13],[13,17]
+  ];
+  const proj = (lm, W, H) => [(lm.x-.5)*W*.8+W/2, (lm.y-.5)*H*.8+H/2 - lm.z*28];
+  function draw() {
+    x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
+    if (currentLM) {
+      x.strokeStyle = 'rgba(125,255,90,.4)'; x.lineWidth = 1;
+      CONN.forEach(([a, b]) => {
+        const [ax,ay] = proj(currentLM[a], W, H);
+        const [bx,by] = proj(currentLM[b], W, H);
+        x.beginPath(); x.moveTo(ax, ay); x.lineTo(bx, by); x.stroke();
+      });
+      currentLM.forEach((lm, i) => {
+        const [px,py] = proj(lm, W, H);
+        x.beginPath(); x.arc(px, py, i===0?3:2, 0, Math.PI*2);
+        x.fillStyle = i===0 ? 'rgba(125,255,90,.9)' : 'rgba(125,255,90,.6)';
+        x.fill();
+      });
+    } else {
+      x.strokeStyle = 'rgba(125,255,90,.07)'; x.lineWidth = 1;
+      x.beginPath(); x.moveTo(W/2-18,H/2); x.lineTo(W/2+18,H/2); x.stroke();
+      x.beginPath(); x.moveTo(W/2,H/2-10); x.lineTo(W/2,H/2+10); x.stroke();
+      x.font = '7px Share Tech Mono'; x.fillStyle = 'rgba(125,255,90,.18)';
+      x.textAlign = 'center'; x.fillText('NO HAND', W/2, H-6);
+    }
+    requestAnimationFrame(draw);
+  }
+  draw();
+})();
+ 
+/* ═══════════════════════════════════════════════════
+   CAMERA START
+═══════════════════════════════════════════════════ */
+window.addEventListener('load', startCamera);
+ 
+async function startCamera() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { width:1280, height:720, frameRate:{ ideal:60 } }, audio:false
+    });
+    videoEl.srcObject = stream;
+    await videoEl.play();
+ 
+    sdotEl.classList.add('on');
+    setTxt('sys-status', 'ONLINE');
+    setTxt('sys-sub', 'FEED ACTIVE');
+    setTxt('feed-state', 'LIVE');
+    setTxt('resol', '1280×720 // 60fps');
+    sigEl.classList.add('on');
+    sessStart = Date.now();
+    addLog('CAMERA CONNECTED — 1280×720');
+ 
+    updateAudDisplay();
+    setAudPanelState('locked');
+    initHands();
+  } catch (e) {
+    addLog('CAMERA ERROR: ' + e.message);
+    setTxt('sys-status', 'ERROR');
+  }
+}
+ 
+/* ═══════════════════════════════════════════════════
+   MEDIAPIPE HANDS
+═══════════════════════════════════════════════════ */
+function initHands() {
+  if (handsStarted) return;
+  handsStarted = true;
+ 
+  const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
+  hands.setOptions({
+    maxNumHands:1, modelComplexity:1,
+    minDetectionConfidence:.55, minTrackingConfidence:.55,
+    selfieMode:true
+  });
+  hands.onResults(onResults);
+ 
+  const cam = new Camera(videoEl, {
+    onFrame: async () => { await hands.send({ image: videoEl }); },
+    width: 1280, height: 720
+  });
+  cam.start();
+  addLog('MEDIAPIPE HANDS INITIALIZED');
+}
+ 
+/* ═══════════════════════════════════════════════════
+   HAND CONNECTIONS (for drawing)
+═══════════════════════════════════════════════════ */
+const HAND_CONN = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [0,9],[9,10],[10,11],[11,12],
+  [0,13],[13,14],[14,15],[15,16],
+  [0,17],[17,18],[18,19],[19,20],
+  [5,9],[9,13],[13,17]
+];
+ 
+/* ═══════════════════════════════════════════════════
+   MEDIAPIPE RESULTS CALLBACK
+═══════════════════════════════════════════════════ */
+function onResults(res) {
+  const now = Date.now();
+  const dt  = lastFrameT ? now - lastFrameT : 16;
+  lastFrameT = now;
+  fps = Math.round(1000 / Math.max(dt, 1));
+  fpsHistory.push(fps);
+  if (fpsHistory.length > 60) fpsHistory.shift();
+  totalFrames++;
+ 
+  const W = camCanvas.width, H = camCanvas.height;
+ 
+  /* ── draw raw camera frame onto canvas ──
+     selfieMode:true in MediaPipe already mirrors it,
+     so we draw straight (no extra flip needed). */
+  camCtx.drawImage(res.image, 0, 0, W, H);
+ 
+  /* green tint overlay */
+  camCtx.fillStyle = 'rgba(0,255,80,.025)';
+  camCtx.fillRect(0, 0, W, H);
+ 
+  /* ── no hand detected ── */
+  if (!res.multiHandLandmarks?.length) {
+    gtagEl.style.display = 'none';
+    currentLM = null;
+    waveTarget = 4;
+    setGestureIcon('');
+    handWasOpen     = false;
+    openHandStartTime = 0;
+    domBatch(null, null, null);
+    return;
+  }
+
+  detections++;
+  const lm = res.multiHandLandmarks[0];
+  currentLM = lm; // for 3D view (already in selfie coords from MediaPipe)
+ 
+  /* ── draw hand skeleton ── */
+  const toScreen = p => [p.x * W, p.y * H];
+ 
+  camCtx.beginPath();
+  HAND_CONN.forEach(([a, b]) => {
+    const [ax,ay] = toScreen(lm[a]);
+    const [bx,by] = toScreen(lm[b]);
+    camCtx.moveTo(ax, ay); camCtx.lineTo(bx, by);
+  });
+  camCtx.strokeStyle = 'rgba(125,255,90,.65)'; camCtx.lineWidth = 1.8; camCtx.stroke();
+ 
+  // key landmarks
+  [0,4,8,12,16,20,5,9,13,17].forEach(i => {
+    const [px,py] = toScreen(lm[i]);
+    camCtx.beginPath(); camCtx.arc(px, py, i===0 ? 5 : 3.5, 0, Math.PI*2);
+    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.9)' : 'rgba(125,255,90,.85)';
+    camCtx.fill();
+  });
+ 
+  /* ── bounding box ── */
+  const xs = lm.map(p => p.x * W), ys = lm.map(p => p.y * H);
+  const x1 = Math.min(...xs)-18, y1 = Math.min(...ys)-18;
+  const x2 = Math.max(...xs)+18, y2 = Math.max(...ys)+18;
+  camCtx.strokeStyle = 'rgba(125,255,90,.32)'; camCtx.lineWidth = 1;
+  camCtx.strokeRect(x1, y1, x2-x1, y2-y1);
+  const bc = (cx,cy,dx,dy) => {
+    camCtx.beginPath();
+    camCtx.moveTo(cx+dx*16, cy); camCtx.lineTo(cx, cy); camCtx.lineTo(cx, cy+dy*16);
+    camCtx.stroke();
+  };
+  camCtx.strokeStyle = 'rgba(125,255,90,.9)'; camCtx.lineWidth = 2;
+  bc(x1,y1, 1, 1); bc(x2,y1,-1, 1); bc(x1,y2, 1,-1); bc(x2,y2,-1,-1);
+ 
+  /* ── classify fingers ── */
+  const isUp = (t, b) => lm[t].y < lm[b].y;
+  const thumb  = lm[4].x < lm[3].x; // mirrored: left is greater x in selfie
+  const index  = isUp(8,  6);
+  const middle = isUp(12,10);
+  const ring   = isUp(16,14);
+  const pinky  = isUp(20,18);
+ 
+  /* ── classify gesture ── */
+  let gesture = 'TRACKING';
+  if (index && middle && ring && pinky)                  gesture = 'OPEN HAND';
+  else if (index && !middle && !ring && pinky)           gesture = 'ROCK';
+  else if (index && middle && !ring && !pinky)           gesture = 'PEACE';
+  else if (thumb && !index && !middle && !ring && !pinky)
+  gesture = 'THUMB UP';
+
+else if (
+  lm[4].y > lm[3].y &&
+  !index &&
+  !middle &&
+  !ring &&
+  !pinky
+)
+  gesture = 'THUMB DOWN';
+
+/* wave amplitude mapping */
+const ampMap = {
+  'OPEN HAND':14,
+  'ROCK':22,
+  'PEACE':18,
+  'THUMB UP':16,
+  'THUMB DOWN':16,
+  'TRACKING':8
+};
+
+waveTarget = ampMap[gesture] || 8;
+ 
+  /* ═══════════════════════════════════════════
+     3-STATE LOCK LOGIC
+  ═══════════════════════════════════════════ */
+ 
+  /* STATE: boot — only unlock on confirmed open hand */
+  if (lockState === 'boot') {
+    if (gesture === 'OPEN HAND') {
+      if (!handWasOpen && openHandStartTime === 0) openHandStartTime = now;
+      if (!handWasOpen && (now - openHandStartTime >= CFG.debounceMs)) {
+        // UNLOCK
+        lockState = 'unlocked';
+        handWasOpen = true;
+        bootEl.classList.add('gone');
+        camLockMask.classList.add('hidden');
+        setAudPanelState('idle');
+        addLog('AUTHORIZATION GRANTED — SYSTEM ONLINE');
+        addLog('SEQUENCER UNLOCKED — OPEN HAND TO PLAY');
+        pushHistory('OPEN HAND');
+      }
+    } else {
+      handWasOpen = false;
+      openHandStartTime = 0;
+    }
+  }
+ 
+  /* STATE: unlocked — fire audio on confirmed open hand */
+/* STATE: unlocked OR playing — fire/interrupt audio on confirmed open hand */
+  else if (lockState === 'unlocked' || lockState === 'playing') {
+    if (gesture === 'OPEN HAND') {
+      if (!handWasOpen && openHandStartTime === 0) openHandStartTime = now;
+ 
+      const progress = Math.min(1, (now - openHandStartTime) / CFG.debounceMs);
+      setDbRing(progress);
+ 
+      if (!handWasOpen && (now - openHandStartTime >= CFG.debounceMs)) {
+        handWasOpen = true;
+        dbTxtEl.innerText = 'DISPATCHING…';
+
+        if (lockState === 'playing') {
+            addLog('ÁUDIO INTERROMPIDO — MUDANDO DE FAIXA');
         }
-
+        
+        playNextAudio();
+        pushHistory('OPEN HAND');
+      } else if (!handWasOpen) {
+        dbTxtEl.innerText = 'ESTABILIZANDO…';
+      }
+    } else {
+      /* closed / changed — reset debounce */
+      handWasOpen = false;
+      openHandStartTime = 0;
+      setDbRing(1);
+      dbTxtEl.innerText = lockState === 'playing' ? 'REPRODUZINDO...' : 'READY — OPEN HAND TO PLAY';
+    }
  
+    /* ROCK / PEACE funcionam apenas se o áudio não estiver tocando */
+   if (lockState !== 'playing') {
 
-    }else{
+    if (gesture === 'ROCK' && !rockCool) {
+        rockCool = true;
 
- 
+        player.pause();
+        player.currentTime = 0;
+        player.src = 'Sounds/arma.mp3';
+        player.play();
 
-        document.getElementById("gesture").innerText =
+        addLog('GESTURE: ROCK — ARMA');
 
-            "GESTURE: NONE";
-
- 
-
-        document.getElementById("motor").innerText =
-
-            "POWER: 0";
-
+        setTimeout(() => {
+            rockCool = false;
+        }, 3000);
     }
 
-}
+    else if (gesture === 'PEACE' && !peaceCool) {
+        peaceCool = true;
 
- 
+        player.pause();
+        player.currentTime = 0;
+        player.src = 'Sounds/hipersono.mp3';
+        player.play();
 
-/* =========================
+        addLog('GESTURE: PEACE — HIPERSONO');
 
-   START CAMERA
-
-========================= */
-
-async function startCamera(){
-
- 
-
-    try{
-
- 
-
-        const stream =
-
-            await navigator.mediaDevices.getUserMedia({
-
- 
-
-                video:{
-
-                    width:720,
-
-                    height:540
-
-                }
-
- 
-
-            });
-
- 
-
-        video.srcObject = stream;
-
- 
-
-        await video.play();
-
- 
-
-        initMediaPipe();
-
- 
-
-    }catch(err){
-
- 
-
-        console.error(err);
-
- 
-
-        alert("Erro ao abrir câmera");
-
- 
-
+        setTimeout(() => {
+            peaceCool = false;
+        }, 3000);
     }
 
-}
+    else if (gesture === 'THUMB DOWN' && !thumbCool) {
+        thumbCool = true;
 
+        player.pause();
+        player.currentTime = 0;
+        player.src = 'Sounds/explosao.mp3';
+        player.play();
+
+        addLog('GESTURE: THUMB DOWN — EXPLOSAO');
+
+        setTimeout(() => {
+            thumbCool = false;
+        }, 3000);
+    }
+} // fecha if(lockState !== 'playing')
+
+} // fecha else if(lockState === 'unlocked' || lockState === 'playing')
+  /* STATE: playing — all gestures ignored, just display */
+  // (nothing to trigger — player.onended resets to 'unlocked')
  
+  /* gesture history on change (only post-unlock) */
+  if (lockState !== 'boot' && gesture !== prevGesture && gesture !== 'TRACKING') {
+    if (gesture !== 'OPEN HAND') pushHistory(gesture); // open hand already pushed above
+  }
+  prevGesture = gesture;
+ 
+  /* gesture label on camera */
+  const [tx, ty] = toScreen(lm[8]);
+  gtagEl.style.left = `${(tx/W)*100}%`;
+  gtagEl.style.top  = `${(ty/H)*100}%`;
+  gtagEl.style.display = 'block';
+  gtagEl.innerText = gesture;
+ 
+  updateFingerBars([thumb, index, middle, ring, pinky]);
+  domBatch(gesture, lm, fps);
+  setGestureIcon(gesture);
+}
+ 
+/* ═══════════════════════════════════════════════════
+   VIDEO OVERLAY (PEACE gesture)
+═══════════════════════════════════════════════════ */
 
+/* ═══════════════════════════════════════════════════
+   THROTTLED DOM BATCH (~10 fps writes)
+═══════════════════════════════════════════════════ */
+function domBatch(gesture, lm, fpsVal) {
+  const now = Date.now();
+  if (now - lastDomFlush < 100 && gesture !== null) return;
+  lastDomFlush = now;
+ 
+  if (gesture === null) {
+    setTxt('gest-name', 'NO HAND');
+    setTxt('gest-conf', 'CONFIDENCE —');
+    setTxt('cx','—.———'); setTxt('cy','—.———'); setTxt('cz','—.———');
+  } else {
+    setTxt('gest-name', gesture);
+    setTxt('gest-conf', 'CONFIDENCE — ' + Math.round(70 + Math.random() * 25) + '%');
+    if (lm) {
+      setTxt('cx', lm[8].x.toFixed(3));
+      setTxt('cy', lm[8].y.toFixed(3));
+      setTxt('cz', lm[8].z.toFixed(3));
+    }
+  }
+  if (fpsVal !== null) {
+    setTxt('fps-num', fpsVal);
+    setTxt('frame-ct', totalFrames.toLocaleString());
+    setTxt('latency', 'LATENCY: ' + (1000 / Math.max(fpsVal,1)).toFixed(0) + ' ms');
+    setTxt('r-det', detections.toLocaleString());
+  }
+}
+ 
+/* init */
+updateAudDisplay();
+setAudPanelState('locked');
 </script>
-
- 
-
 </body>
-
 </html>
-
-
