@@ -22,11 +22,12 @@ Durante meses de desenvolvimento, a equipe trabalhou **três dias por semana**, 
 
 ## Hardware
 
-- Arduino Nano
-- LEGO Mindstorms EV3
+- Arduino UNO
+- LEGO Spike Prime
 - micro:bit
 - Sensor VL53L0X (Time of Flight)
 - Sensor Ultrassônico LEGO
+- Attiny 85
 - Sensor TCRT5000
 - WS2812 LED Strip
 - WS2812 LED Ring
