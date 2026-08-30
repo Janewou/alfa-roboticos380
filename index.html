@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>WEYLAND YUTANI // XENO VISION</title>
+<title>WEYLAND YUTANI // VISÃO XENO</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -11,13 +11,13 @@
    TOKENS
 ══════════════════════════════════════════ */
 :root{
-  --g:   #9bbc0f;
-  --g2:  #c7f04a;
-  --g60: rgba(125,255,90,.6);
-  --g08: rgba(125,255,90,.08);
-  --r:   #00470c;
-  --amb: #034e00;
-  --teal:#000285;
+  --g:   #718b2f;
+  --g2:  #a8bf55;
+  --g60: rgba(105,135,48,.6);
+  --g08: rgba(105,135,48,.08);
+  --r:   #ff3b5f;
+  --amb: #ffb830;
+  --teal:#00ffcd;
   --bg:  #010301;
   --M:   'Share Tech Mono', monospace;
   --D:   'Orbitron', sans-serif;
@@ -28,12 +28,12 @@
 }
 *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:100%; height:100%; overflow:hidden; background:#000;
-  font-family:var(--M); color:#0a4400; font-size:14px; }
+  font-family:var(--M); color:#c8f5c0; font-size:14px; }
  
 body {
   background:
-    radial-gradient(ellipse 60% 55% at 0% 0%,   rgba(0,255,90,.05),  transparent),
-    radial-gradient(ellipse 50% 40% at 100% 100%,rgba(0,255,160,.04), transparent),
+    radial-gradient(ellipse 60% 55% at 0% 0%,   rgba(70,100,35,.05),  transparent),
+    radial-gradient(ellipse 50% 40% at 100% 100%,rgba(55,90,50,.04), transparent),
     var(--bg);
 }
 /* scanlines */
@@ -52,8 +52,8 @@ body::after {
 .grid {
   position:fixed; inset:0; z-index:0; will-change:transform;
   background-image:
-    linear-gradient(rgba(0,255,120,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0,255,120,.025) 1px, transparent 1px);
+    linear-gradient(rgba(65,95,40,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(65,95,40,.025) 1px, transparent 1px);
   background-size:32px 32px;
   animation: gridmove 28s linear infinite;
 }
@@ -72,9 +72,9 @@ body::after {
 .bx { display:flex; flex-direction:column; align-items:center; width:560px; max-width:94vw; }
 .bx-rule { width:100%; height:1px; background:linear-gradient(90deg, transparent, var(--g), transparent); opacity:.3; }
 .bx-logo { width:100px; margin:32px 0 18px; filter:drop-shadow(0 0 20px var(--g)); animation:logopulse 3s ease infinite; }
-@keyframes logopulse { 50%{ filter:drop-shadow(0 0 40px var(--g)) drop-shadow(0 0 80px rgba(125,255,90,.25)); } }
+@keyframes logopulse { 50%{ filter:drop-shadow(0 0 40px var(--g)) drop-shadow(0 0 80px rgba(105,135,48,.25)); } }
  
-.bx-corp  { font-size:8px; letter-spacing:7px; color:rgba(125,255,90,.35); margin-bottom:4px; }
+.bx-corp  { font-size:8px; letter-spacing:7px; color:rgba(105,135,48,.35); margin-bottom:4px; }
 .bx-title {
   font-family:var(--D); font-size:clamp(22px,4.5vw,42px); font-weight:900;
   letter-spacing:5px; color:var(--g); text-shadow:0 0 24px var(--g);
@@ -89,8 +89,8 @@ body::after {
 @keyframes glitch1 { 0%,88%,100%{transform:translateX(0)} 90%{transform:translateX(-4px)} 93%{transform:translateX(3px)} 95%{transform:translateX(0)} }
 @keyframes glitch2 { 0%,86%,100%{transform:translateX(0)} 88%{transform:translateX(4px)} 91%{transform:translateX(-3px)} 93%{transform:translateX(0)} }
  
-.bx-sub   { font-size:8px; letter-spacing:4px; color:rgba(125,255,90,.24); margin-bottom:32px; }
-.bx-plabs { display:flex; justify-content:space-between; font-size:8px; letter-spacing:2px; color:rgba(125,255,90,.3); margin-bottom:5px; width:100%; }
+.bx-sub   { font-size:8px; letter-spacing:4px; color:rgba(105,135,48,.24); margin-bottom:32px; }
+.bx-plabs { display:flex; justify-content:space-between; font-size:8px; letter-spacing:2px; color:rgba(105,135,48,.3); margin-bottom:5px; width:100%; }
 .loader   { width:100%; height:2px; background:rgba(255,255,255,.05); border-radius:999px; overflow:hidden; position:relative; margin-bottom:12px; }
 .loader::after {
   content:""; position:absolute; left:-45%; top:0; width:45%; height:100%;
@@ -98,7 +98,7 @@ body::after {
   animation:loadslide 1.9s linear infinite;
 }
 @keyframes loadslide { to { left:110%; } }
-.bx-log    { font-size:9px; letter-spacing:1px; color:rgba(125,255,90,.25); line-height:1.9; width:100%; }
+.bx-log    { font-size:9px; letter-spacing:1px; color:rgba(105,135,48,.25); line-height:1.9; width:100%; }
 .bx-prompt { margin-top:24px; font-size:11px; letter-spacing:4px; color:var(--g); text-shadow:0 0 8px var(--g); animation:blink 1s step-start infinite; }
 @keyframes blink { 50%{ opacity:0; } }
  
@@ -122,45 +122,45 @@ body::after {
 }
 .panel::before {
   content:""; position:absolute; top:0; left:8%; right:8%; height:1px;
-  background:linear-gradient(90deg, transparent, rgba(125,255,90,.18), transparent);
+  background:linear-gradient(90deg, transparent, rgba(105,135,48,.18), transparent);
   pointer-events:none;
 }
  
 /* ══════════════════════════════════════════
    SHARED MINI COMPONENTS
 ══════════════════════════════════════════ */
-.label { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.28); margin-bottom:5px; }
+.label { font-size:7px; letter-spacing:3px; color:rgba(105,135,48,.28); margin-bottom:5px; }
 .val-lg { font-family:var(--D); font-size:11px; font-weight:700; letter-spacing:.5px; line-height:1.2; }
-.val-sm { font-size:7px; letter-spacing:1px; color:rgba(125,255,90,.22); margin-top:2px; }
+.val-sm { font-size:7px; letter-spacing:1px; color:rgba(105,135,48,.22); margin-top:2px; }
  
 .cg  { color:var(--g); }
 .cg2 { color:var(--teal); }
 .ca  { color:var(--amb); }
-.cd  { color:rgba(125,255,90,.5); }
+.cd  { color:rgba(105,135,48,.5); }
  
 .dot { display:inline-block; width:5px; height:5px; border-radius:50%; background:var(--r);
   margin-right:4px; vertical-align:middle; box-shadow:0 0 4px currentColor; transition:background .3s; }
 .dot.on { background:var(--g); }
  
 .sig { display:flex; align-items:flex-end; gap:2px; height:14px; margin-top:4px; }
-.sig span { display:block; width:4px; background:rgba(125,255,90,.14); border-radius:2px; transition:background .3s; }
+.sig span { display:block; width:4px; background:rgba(105,135,48,.14); border-radius:2px; transition:background .3s; }
 .sig span:nth-child(1){height:4px} .sig span:nth-child(2){height:7px}
 .sig span:nth-child(3){height:10px} .sig span:nth-child(4){height:14px}
 .sig.on span { background:var(--g); box-shadow:0 0 4px var(--g); }
  
 /* mini card */
 .mc {
-  border:1px solid rgba(125,255,90,.07); background:rgba(0,0,0,.32);
+  border:1px solid rgba(105,135,48,.07); background:rgba(0,0,0,.32);
   border-radius:var(--r10); padding:9px 10px; position:relative; overflow:hidden;
 }
 .mc::after {
   content:""; position:absolute; top:0; right:0; width:0; height:0; border-style:solid;
-  border-width:0 9px 9px 0; border-color:transparent rgba(125,255,90,.08) transparent transparent;
+  border-width:0 9px 9px 0; border-color:transparent rgba(105,135,48,.08) transparent transparent;
 }
  
 /* sub-panel (reused for all card-like sections) */
 .subpanel {
-  border:1px solid rgba(125,255,90,.07); background:rgba(0,0,0,.36);
+  border:1px solid rgba(105,135,48,.07); background:rgba(0,0,0,.36);
   border-radius:var(--r10); padding:9px 10px;
 }
  
@@ -170,22 +170,22 @@ body::after {
 .lsb { padding:12px 11px; display:flex; flex-direction:column; gap:7px; overflow:hidden; }
  
 /* header */
-.lh { padding-bottom:10px; border-bottom:1px solid rgba(125,255,90,.07); }
-.lh-eye { font-size:7px; letter-spacing:4px; color:rgba(125,255,90,.26); margin-bottom:2px;
+.lh { padding-bottom:10px; border-bottom:1px solid rgba(105,135,48,.07); }
+.lh-eye { font-size:7px; letter-spacing:4px; color:rgba(105,135,48,.26); margin-bottom:2px;
   display:flex; align-items:center; gap:6px; }
-.lh-eye::before { content:""; display:inline-block; width:12px; height:1px; background:rgba(125,255,90,.26); }
+.lh-eye::before { content:""; display:inline-block; width:12px; height:1px; background:rgba(105,135,48,.26); }
 .lh-h1 { font-family:var(--D); font-size:20px; font-weight:900; letter-spacing:2px;
-  color:var(--g); text-shadow:0 0 14px rgba(125,255,90,.35); line-height:1; }
-.lh-tag { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.16); margin-top:2px; }
+  color:var(--g); text-shadow:0 0 14px rgba(105,135,48,.35); line-height:1; }
+.lh-tag { font-size:7px; letter-spacing:3px; color:rgba(105,135,48,.16); margin-top:2px; }
  
 /* stats row */
 .mcg { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
  
-/* ── AUDIO SEQUENCER PANEL ── */
+/* ── SEQUÊNCIA DE ÁUDIOR PANEL ── */
 .aud {
   border-radius:var(--r10); padding:11px 12px; position:relative; overflow:hidden;
   background:rgba(0,0,0,.55);
-  border:1px solid rgba(125,255,90,.1);
+  border:1px solid rgba(105,135,48,.1);
   transition: border-color .3s, box-shadow .3s;
 }
 /* locked state */
@@ -195,12 +195,12 @@ body::after {
 }
 /* unlocked idle */
 .aud.idle {
-  border-color:rgba(125,255,90,.12);
+  border-color:rgba(105,135,48,.12);
 }
 /* playing */
 .aud.playing {
-  border-color:rgba(125,255,90,.4);
-  box-shadow:0 0 24px rgba(125,255,90,.1), inset 0 0 20px rgba(125,255,90,.04);
+  border-color:rgba(105,135,48,.4);
+  box-shadow:0 0 24px rgba(105,135,48,.1), inset 0 0 20px rgba(105,135,48,.04);
 }
  
 .aud-shine {
@@ -208,7 +208,7 @@ body::after {
   background:transparent; transition:background .4s;
 }
 .aud.playing .aud-shine {
-  background:radial-gradient(ellipse 80% 40% at 50% 0%, rgba(125,255,90,.06), transparent);
+  background:radial-gradient(ellipse 80% 40% at 50% 0%, rgba(105,135,48,.06), transparent);
 }
  
 /* lock overlay (shown when locked) */
@@ -230,23 +230,23 @@ body::after {
 .aud-track { display:flex; align-items:center; gap:10px; margin-top:4px; }
 .aud-num {
   font-family:var(--D); font-size:28px; font-weight:900; color:var(--g);
-  text-shadow:0 0 12px rgba(125,255,90,.4); line-height:1; min-width:34px; text-align:center;
+  text-shadow:0 0 12px rgba(105,135,48,.4); line-height:1; min-width:34px; text-align:center;
   transition:text-shadow .3s;
 }
 .aud.playing .aud-num {
-  text-shadow:0 0 28px var(--g), 0 0 50px rgba(125,255,90,.3);
+  text-shadow:0 0 28px var(--g), 0 0 50px rgba(105,135,48,.3);
   animation:numpulse 1.2s ease infinite;
 }
 @keyframes numpulse { 50%{ text-shadow:0 0 10px var(--g); } }
  
 .aud-info { flex:1; min-width:0; }
-.aud-name { font-size:8px; letter-spacing:1px; color:rgba(125,255,90,.65);
+.aud-name { font-size:8px; letter-spacing:1px; color:rgba(105,135,48,.65);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.aud-state { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.3); margin-top:3px; transition:color .2s; }
+.aud-state { font-size:7px; letter-spacing:2px; color:rgba(105,135,48,.3); margin-top:3px; transition:color .2s; }
 .aud.playing .aud-state { color:var(--amb); }
  
 /* progress bar */
-.aud-bar { width:100%; height:2px; background:rgba(125,255,90,.08); border-radius:999px; overflow:hidden; margin-top:8px; }
+.aud-bar { width:100%; height:2px; background:rgba(105,135,48,.08); border-radius:999px; overflow:hidden; margin-top:8px; }
 .aud-fill { height:100%; background:var(--g); border-radius:999px; width:0%; transition:width .25s linear; }
 .aud.playing .aud-fill { box-shadow:0 0 6px var(--g); }
  
@@ -255,7 +255,7 @@ body::after {
 .db-ring { width:16px; height:16px; flex-shrink:0; }
 .db-ring circle { transition:stroke-dashoffset .08s linear; }
 .db-txt { font-size:7px; letter-spacing:2px; }
-.aud.idle    .db-txt { color:rgba(125,255,90,.45); }
+.aud.idle    .db-txt { color:rgba(105,135,48,.45); }
 .aud.playing .db-txt { color:rgba(255,184,48,.6); }
  
 /* ── FPS graph ── */
@@ -263,19 +263,19 @@ body::after {
 .fps-row { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:5px; }
 .fps-num { font-family:var(--D); font-size:16px; font-weight:700; color:var(--g);
   text-shadow:0 0 8px var(--g); letter-spacing:1px; }
-.fps-unit { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.35); margin-left:2px; }
+.fps-unit { font-size:7px; letter-spacing:2px; color:rgba(105,135,48,.35); margin-left:2px; }
 canvas#fpsc { width:100%; height:32px; display:block; image-rendering:pixelated; }
  
 /* ── gesture icons ── */
 .gi-row { display:flex; gap:5px; margin-top:7px; }
 .gi {
   flex:1; display:flex; flex-direction:column; align-items:center; gap:3px; padding:7px 3px;
-  border-radius:var(--r6); border:1px solid rgba(125,255,90,.06); background:rgba(0,0,0,.18);
-  font-size:6px; letter-spacing:2px; color:rgba(125,255,90,.22);
+  border-radius:var(--r6); border:1px solid rgba(105,135,48,.06); background:rgba(0,0,0,.18);
+  font-size:6px; letter-spacing:2px; color:rgba(105,135,48,.22);
   transition:border-color .2s, background .2s, color .2s;
 }
 .gi svg { opacity:.22; transition:opacity .2s, filter .2s; }
-.gi.act { border-color:rgba(125,255,90,.3); background:rgba(125,255,90,.05); color:var(--g); }
+.gi.act { border-color:rgba(105,135,48,.3); background:rgba(105,135,48,.05); color:var(--g); }
 .gi.act svg { opacity:1; filter:drop-shadow(0 0 3px var(--g)); }
  
 /* ── waveform ── */
@@ -284,28 +284,28 @@ canvas#wave { width:100%; height:32px; display:block; image-rendering:pixelated;
 /* ── coords ── */
 .coord-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:4px; margin-top:5px; }
 .coord-cell { text-align:center; }
-.coord-k { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.22); margin-bottom:2px; }
+.coord-k { font-size:7px; letter-spacing:2px; color:rgba(105,135,48,.22); margin-bottom:2px; }
 .coord-v { font-family:var(--D); font-size:9px; font-weight:700; color:var(--teal); letter-spacing:.5px; }
  
 /* ── log ── */
 .log-box {
   flex:1; display:flex; flex-direction:column; min-height:0;
-  border:1px solid rgba(125,255,90,.06); background:rgba(0,0,0,.45);
+  border:1px solid rgba(105,135,48,.06); background:rgba(0,0,0,.45);
   border-radius:var(--r10); overflow:hidden;
 }
 .log-hd {
   display:flex; align-items:center; justify-content:space-between; padding:5px 9px;
-  border-bottom:1px solid rgba(125,255,90,.06); font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.26);
+  border-bottom:1px solid rgba(105,135,48,.06); font-size:7px; letter-spacing:3px; color:rgba(105,135,48,.26);
   flex-shrink:0;
 }
 .log-dot { width:4px; height:4px; border-radius:50%; background:var(--g); box-shadow:0 0 4px var(--g); animation:blink 1.8s step-start infinite; }
 .log-body {
   flex:1; overflow-y:auto; padding:6px 9px; font-size:8px; letter-spacing:.3px;
   color:rgba(93,255,149,.55); line-height:1.85;
-  scrollbar-width:thin; scrollbar-color:rgba(125,255,90,.08) transparent;
+  scrollbar-width:thin; scrollbar-color:rgba(105,135,48,.08) transparent;
 }
 .le { display:flex; gap:6px; }
-.lt { color:rgba(125,255,90,.18); white-space:nowrap; flex-shrink:0; }
+.lt { color:rgba(105,135,48,.18); white-space:nowrap; flex-shrink:0; }
  
 /* ══════════════════════════════════════════
    CENTER — VIEWER
@@ -317,7 +317,7 @@ canvas#wave { width:100%; height:32px; display:block; image-rendering:pixelated;
   position:absolute; top:0; left:0; right:0; height:54px; z-index:20;
   background:linear-gradient(180deg, rgba(0,0,0,.88), transparent);
   display:flex; align-items:center; justify-content:space-between; padding:0 16px;
-  border-bottom:1px solid rgba(125,255,90,.05);
+  border-bottom:1px solid rgba(105,135,48,.05);
 }
 .tb-title {
   font-family:var(--D); font-size:11px; font-weight:700; color:var(--g);
@@ -327,8 +327,8 @@ canvas#wave { width:100%; height:32px; display:block; image-rendering:pixelated;
   content:attr(data-t); position:absolute; left:0; top:0;
   color:#ff3b5f; clip-path:polygon(0 0,100% 0,100% 45%,0 45%); animation:glitch1 6s infinite;
 }
-.tb-sub { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.24); margin-top:2px; }
-.tc-id  { font-size:7px; letter-spacing:3px; color:rgba(125,255,90,.36); margin-bottom:2px; }
+.tb-sub { font-size:7px; letter-spacing:3px; color:rgba(105,135,48,.24); margin-top:2px; }
+.tc-id  { font-size:7px; letter-spacing:3px; color:rgba(105,135,48,.36); margin-bottom:2px; }
 .tc-live {
   display:flex; align-items:center; gap:5px; font-size:7px; letter-spacing:3px; color:var(--r);
 }
@@ -336,17 +336,17 @@ canvas#wave { width:100%; height:32px; display:block; image-rendering:pixelated;
   content:""; width:5px; height:5px; border-radius:50%; background:var(--r);
   box-shadow:0 0 4px var(--r); animation:blink .88s step-start infinite;
 }
-.tb-clock { font-family:var(--D); font-size:15px; color:rgba(125,255,90,.75); letter-spacing:1px; text-align:right; }
-.tb-date  { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.24); }
+.tb-clock { font-family:var(--D); font-size:15px; color:rgba(105,135,48,.75); letter-spacing:1px; text-align:right; }
+.tb-date  { font-size:7px; letter-spacing:2px; color:rgba(105,135,48,.24); }
  
 /* bottombar */
 .bb {
   position:absolute; bottom:0; left:0; right:0; height:42px; z-index:20;
   background:linear-gradient(0deg, rgba(0,0,0,.88), transparent);
   display:flex; align-items:center; justify-content:space-between; padding:0 16px;
-  border-top:1px solid rgba(125,255,90,.05);
+  border-top:1px solid rgba(105,135,48,.05);
 }
-.bb-txt { font-size:8px; letter-spacing:2px; color:rgba(125,255,90,.26); }
+.bb-txt { font-size:8px; letter-spacing:2px; color:rgba(105,135,48,.26); }
 .warn {
   display:flex; align-items:center; gap:5px; font-family:var(--D); font-size:8px;
   letter-spacing:3px; color:var(--r); animation:warnblink .95s step-start infinite;
@@ -385,33 +385,33 @@ canvas#cam {
 .ctrr { top:12px; right:12px; border-width:2px 2px 0 0; } .ctrr::before { top:-2px; right:-2px; }
 .cblr { bottom:12px; left:12px; border-width:0 0 2px 2px; } .cblr::before { bottom:-2px; left:-2px; }
 .cbrr { bottom:12px; right:12px; border-width:0 2px 2px 0; } .cbrr::before { bottom:-2px; right:-2px; }
-.hud-hr { position:absolute; left:12px; right:12px; height:1px; background:rgba(125,255,90,.04); }
+.hud-hr { position:absolute; left:12px; right:12px; height:1px; background:rgba(105,135,48,.04); }
 .hud-hr.t { top:65px; } .hud-hr.b { bottom:52px; }
  
 /* center ring */
 .ring {
   position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
   width:76px; height:76px; border-radius:50%;
-  border:1px solid rgba(125,255,90,.1);
+  border:1px solid rgba(105,135,48,.1);
   animation:ringpulse 5s ease infinite; pointer-events:none;
 }
 .ring::before {
   content:""; position:absolute; inset:8px; border-radius:50%;
-  border:1px dashed rgba(125,255,90,.06); animation:ringspin 28s linear infinite;
+  border:1px dashed rgba(105,135,48,.06); animation:ringspin 28s linear infinite;
 }
 .ring::after {
   content:""; position:absolute; inset:17px; border-radius:50%;
-  border:1px solid rgba(125,255,90,.04);
+  border:1px solid rgba(105,135,48,.04);
 }
 @keyframes ringpulse { 50%{ transform:translate(-50%,-50%) scale(1.04); opacity:.7; } }
 @keyframes ringspin  { to { transform:rotate(360deg); } }
 .xhair { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:18px; height:18px; pointer-events:none; }
-.xhair::before,.xhair::after { content:""; position:absolute; background:rgba(125,255,90,.3); }
+.xhair::before,.xhair::after { content:""; position:absolute; background:rgba(105,135,48,.3); }
 .xhair::before { width:1px; height:100%; left:50%; top:0; }
 .xhair::after  { height:1px; width:100%; top:50%; left:0; }
 .scanline {
   position:absolute; left:0; width:100%; height:2px;
-  background:linear-gradient(90deg, transparent, rgba(125,255,90,.45), transparent);
+  background:linear-gradient(90deg, transparent, rgba(105,135,48,.45), transparent);
   opacity:.2; animation:scan 9s linear infinite; pointer-events:none;
 }
 @keyframes scan { from{ top:-4%; } to{ top:106%; } }
@@ -424,14 +424,14 @@ canvas#cam {
   font-family:var(--D); font-size:8px; letter-spacing:3px;
   transform:translate(-50%,-170%);
   display:none; white-space:nowrap;
-  box-shadow:0 0 14px rgba(125,255,90,.15);
+  box-shadow:0 0 14px rgba(105,135,48,.15);
 }
 .gtag::after {
   content:""; position:absolute; bottom:-5px; left:50%; transform:translateX(-50%);
-  width:1px; height:6px; background:rgba(125,255,90,.4);
+  width:1px; height:6px; background:rgba(105,135,48,.4);
 }
  
-/* camera locked overlay — full viewer when LOCKED */
+/* camera locked overlay — full viewer when BLOQUEADO */
 .cam-lock-mask {
   position:absolute; inset:0; z-index:15; pointer-events:none;
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px;
@@ -450,9 +450,9 @@ canvas#cam {
 /* audio flash pop */
 .audioflash {
   position:absolute; inset:0; z-index:8; pointer-events:none;
-  background:rgba(125,255,90,0); transition:background .06s;
+  background:rgba(105,135,48,0); transition:background .06s;
 }
-.audioflash.pop { background:rgba(125,255,90,.07); }
+.audioflash.pop { background:rgba(105,135,48,.07); }
  
 /* ══════════════════════════════════════════
    RIGHT SIDEBAR
@@ -465,32 +465,32 @@ canvas#rad  { width:100%; height:105px; display:block; }
 /* finger bars */
 .fbars { display:flex; flex-direction:column; gap:5px; margin-top:6px; }
 .fb { display:flex; align-items:center; gap:6px; }
-.fb-lbl { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.28); width:36px; flex-shrink:0; }
+.fb-lbl { font-size:7px; letter-spacing:2px; color:rgba(105,135,48,.28); width:36px; flex-shrink:0; }
 .fb-track { flex:1; height:3px; background:rgba(255,255,255,.05); border-radius:999px; overflow:hidden; }
-.fb-fill { height:100%; border-radius:999px; background:rgba(125,255,90,.16); transition:width .12s ease; }
+.fb-fill { height:100%; border-radius:999px; background:rgba(105,135,48,.16); transition:width .12s ease; }
 .fb-fill.up { background:var(--g); box-shadow:0 0 5px var(--g); }
-.fb-val { font-size:7px; color:rgba(125,255,90,.28); width:16px; text-align:right; }
+.fb-val { font-size:7px; color:rgba(105,135,48,.28); width:16px; text-align:right; }
  
 /* gesture history */
 .gh-list {
   display:flex; flex-direction:column; gap:3px; margin-top:6px;
   overflow-y:auto; max-height:calc(100% - 22px);
-  scrollbar-width:thin; scrollbar-color:rgba(125,255,90,.08) transparent;
+  scrollbar-width:thin; scrollbar-color:rgba(105,135,48,.08) transparent;
 }
 .gh-item {
   display:flex; justify-content:space-between; align-items:center;
   padding:4px 6px; border-radius:4px; background:rgba(0,0,0,.2);
-  border-left:2px solid rgba(125,255,90,.12);
+  border-left:2px solid rgba(105,135,48,.12);
 }
-.gh-item.new { border-left-color:var(--g); background:rgba(125,255,90,.04); }
-.gh-g { font-size:8px; letter-spacing:1px; color:rgba(125,255,90,.58); }
-.gh-t { font-size:7px; color:rgba(125,255,90,.2); }
+.gh-item.new { border-left-color:var(--g); background:rgba(105,135,48,.04); }
+.gh-g { font-size:8px; letter-spacing:1px; color:rgba(105,135,48,.58); }
+.gh-t { font-size:7px; color:rgba(105,135,48,.2); }
  
 /* session info */
 .ri-row { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
 .ri-row:last-child { margin:0; }
-.ri-k { font-size:7px; letter-spacing:2px; color:rgba(125,255,90,.22); }
-.ri-v { font-size:8px; letter-spacing:1px; color:rgba(125,255,90,.52); }
+.ri-k { font-size:7px; letter-spacing:2px; color:rgba(105,135,48,.22); }
+.ri-v { font-size:8px; letter-spacing:1px; color:rgba(105,135,48,.52); }
 #weyland-logo{
     position:fixed;
     top:20px;
@@ -510,8 +510,8 @@ canvas#rad  { width:100%; height:105px; display:block; }
     object-fit:contain;
 
     filter:
-        drop-shadow(0 0 10px rgba(125,255,90,.8))
-        drop-shadow(0 0 25px rgba(125,255,90,.4));
+        drop-shadow(0 0 10px rgba(105,135,48,.8))
+        drop-shadow(0 0 25px rgba(105,135,48,.4));
 
     animation:
         wySpin 10s linear infinite,
@@ -578,8 +578,8 @@ canvas#rad  { width:100%; height:105px; display:block; }
 .aud-state { font-size:10px !important; margin-top:7px; }
 .mission-panel { padding:12px !important; }
 .mission-grid { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:9px; }
-.mission-grid div { border-left:2px solid rgba(125,255,90,.25); padding-left:8px; }
-.mission-grid span { display:block; font-size:8px; letter-spacing:2px; color:rgba(125,255,90,.42); }
+.mission-grid div { border-left:2px solid rgba(105,135,48,.25); padding-left:8px; }
+.mission-grid span { display:block; font-size:8px; letter-spacing:2px; color:rgba(105,135,48,.42); }
 .mission-grid b { display:block; margin-top:3px; font-family:var(--D); font-size:11px; color:var(--g); }
 .rsb .label, .lsb .label { font-size:9px; letter-spacing:2px; }
 .rsb .subpanel, .lsb .subpanel { padding:11px 12px; }
@@ -608,7 +608,7 @@ body::after{
 }
 .panel,.subpanel,.mc,.aud{border-radius:0!important;}
 .panel{border-color:rgba(155,188,15,.28);}
-.panel::before{background:#9bbc0f;opacity:.12;}
+.panel::before{background:#718b2f;opacity:.12;}
 .label{font-size:8px;letter-spacing:2.5px;color:rgba(199,226,106,.58);}
 .val-sm{color:rgba(199,226,106,.5);}
 .val-lg,.tb-title,.lh-h1,.aud-name,.aud-num,.mission-grid b,.fps-num{text-shadow:0 0 5px rgba(155,188,15,.32);}
@@ -636,7 +636,7 @@ canvas#fpsc,canvas#wave,canvas#rad,canvas#lmv{image-rendering:pixelated;}
    Restrained monochrome 1979 phosphor-terminal aesthetic
 ========================================================= */
 :root{
-  --g:#9bbc0f;
+  --g:#718b2f;
   --g2:#b8d84b;
   --phosphor:#c7e26a;
   --dim:#6f8428;
@@ -838,7 +838,7 @@ canvas#wave{height:38px !important;}
   position:relative;
   overflow:hidden;
   color:#dff58a !important;
-  border-left:3px solid #9bbc0f !important;
+  border-left:3px solid #718b2f !important;
   background:rgba(155,188,15,.075) !important;
   text-shadow:0 0 5px rgba(155,188,15,.35) !important;
   font-family:var(--D), monospace !important;
@@ -876,16 +876,16 @@ canvas#wave{height:38px !important;}
   <div class="bx">
     <div class="bx-rule"></div>
     <img class="bx-logo" src="WY-removebg-preview.png" alt="WY">
-    <div class="bx-corp">WEYLAND-YUTANI CORPORATION</div>
+    <div class="bx-corp">CORPORAÇÃO WEYLAND-YUTANI</div>
     <div class="bx-title" data-t="XENO_VISION">XENO_VISION</div>
-    <div class="bx-sub">BIOSCAN MODULE v4.2.1 // CLASSIFIED</div>
+    <div class="bx-sub">MÓDULO BIOSCAN v4.2.1 // CLASSIFICADO</div>
     <div class="bx-plabs">
-      <span id="bstep">INITIALIZING…</span>
+      <span id="bstep">INICIALIZANDO…</span>
       <span id="bpct">0%</span>
     </div>
     <div class="loader"></div>
     <div class="bx-log" id="blog"></div>
-    <div class="bx-prompt">▸ SHOW OPEN HAND TO AUTHORIZE</div>
+    <div class="bx-prompt">▸ MOSTRE A MÃO ABERTA PARA AUTORIZAR</div>
     <div class="bx-rule" style="margin-top:24px"></div>
   </div>
 </div>
@@ -897,9 +897,9 @@ canvas#wave{height:38px !important;}
   <aside class="panel lsb">
  
   <div class="lh">
-  <div class="lh-eye">UNIT NODE</div>
+  <div class="lh-eye">NÓ DA UNIDADE</div>
   <div class="lh-h1">XENO_NODE</div>
-  <div class="lh-tag">BUILDING BETTER WORLDS™</div>
+  <div class="lh-tag">CONSTRUINDO MUNDOS MELHORES™</div>
   
   <button id="btn-arduino" style="margin-top:10px; width:100%; background:transparent; color:var(--g); border:1px solid var(--g); padding:6px 12px; font-family:var(--D); font-size:10px; font-weight:bold; cursor:pointer; border-radius:0; transition: 0.15s; letter-spacing: 2px;">
     [ CONECTAR ARDUINO ]
@@ -911,27 +911,27 @@ canvas#wave{height:38px !important;}
       <div class="mc">
         <div class="label">STATUS</div>
         <div class="val-lg cg"><span class="dot" id="sdot"></span><span id="sys-status">OFFLINE</span></div>
-        <div class="val-sm" id="sys-sub">WAITING FEED</div>
-        <div class="val-sm" id="arduino-state">ARDUINO // DISCONNECTED</div>
+        <div class="val-sm" id="sys-sub">AGUARDANDO SINAL</div>
+        <div class="val-sm" id="arduino-state">ARDUINO // DESCONECTADO</div>
       </div>
       <div class="mc">
-        <div class="label">FEED</div>
-        <div class="val-lg ca" id="feed-state">IDLE</div>
+        <div class="label">SINAL</div>
+        <div class="val-lg ca" id="feed-state">OCIOSO</div>
         <div class="sig" id="sig"><span></span><span></span><span></span><span></span></div>
       </div>
       <div class="mc">
-        <div class="label">SESSION</div>
+        <div class="label">SESSÃO</div>
         <div class="val-lg cd" id="sess-id">—</div>
         <div class="val-sm" id="sess-time">00:00</div>
       </div>
       <div class="mc">
-        <div class="label">FRAMES</div>
+        <div class="label">QUADROS</div>
         <div class="val-lg cd" id="frame-ct">0</div>
-        <div class="val-sm">PROCESSED</div>
+        <div class="val-sm">PROCESSADOS</div>
       </div>
     </div>
  
-    <!-- ═══ AUDIO SEQUENCER ═══ -->
+    <!-- ═══ SEQUÊNCIA DE ÁUDIOR ═══ -->
     <div class="aud locked" id="audPanel">
       <div class="aud-shine"></div>
  
@@ -941,18 +941,18 @@ canvas#wave{height:38px !important;}
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
           <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
         </svg>
-        <div class="lock-txt">SEQUENCER LOCKED</div>
-        <div class="lock-sub">OPEN HAND TO AUTHORIZE</div>
+        <div class="lock-txt">SEQUENCIADOR BLOQUEADO</div>
+        <div class="lock-sub">MÃO ABERTA PARA AUTORIZAR</div>
       </div>
  
-      <div class="label">AUDIO SEQUENCE</div>
+      <div class="label">SEQUÊNCIA DE ÁUDIO</div>
       <div class="aud-track">
         <div id="aud-num" class="aud-num">01</div>
         <div class="aud-info">
           <div class="aud-name" id="aud-name">ÁUDIO 01</div>
           <div class="aud-desc" id="aud-desc">FALHA DE CONTENÇÃO — MOTHER REDEFINE A PRIORIDADE DA MISSÃO.</div>
-          <div class="aud-state" id="aud-state">STANDBY</div>
-          <div class="aud-narrative" id="aud-narrative">SYSTEM READY // AWAITING AUTHORIZATION</div>
+          <div class="aud-state" id="aud-state">AGUARDANDO</div>
+          <div class="aud-narrative" id="aud-narrative">SISTEMA PRONTO // AGUARDANDO AUTORIZAÇÃO</div>
         </div>
       </div>
       <div class="aud-bar">
@@ -960,19 +960,19 @@ canvas#wave{height:38px !important;}
       </div>
       <div class="aud-ready">
         <svg class="db-ring" viewBox="0 0 16 16">
-          <circle cx="8" cy="8" r="6" fill="none" stroke="rgba(125,255,90,.1)" stroke-width="1.5"/>
-          <circle id="dbCircle" cx="8" cy="8" r="6" fill="none" stroke="rgba(125,255,90,.55)"
+          <circle cx="8" cy="8" r="6" fill="none" stroke="rgba(105,135,48,.1)" stroke-width="1.5"/>
+          <circle id="dbCircle" cx="8" cy="8" r="6" fill="none" stroke="rgba(105,135,48,.55)"
             stroke-width="1.5" stroke-dasharray="37.7" stroke-dashoffset="37.7"
             transform="rotate(-90 8 8)" stroke-linecap="round"/>
         </svg>
-        <span class="db-txt" id="db-txt">LOCKED</span>
+        <span class="db-txt" id="db-txt">BLOQUEADO</span>
       </div>
     </div>
  
     <!-- FPS -->
     <div class="subpanel fps-box">
       <div class="fps-row">
-        <div class="label" style="margin:0">FRAME RATE</div>
+        <div class="label" style="margin:0">TAXA DE QUADROS</div>
         <div><span class="fps-num" id="fps-num">—</span><span class="fps-unit">FPS</span></div>
       </div>
       <canvas id="fpsc" width="210" height="32"></canvas>
@@ -982,9 +982,9 @@ canvas#wave{height:38px !important;}
 </div>
     <!-- gesture icons -->
     <div class="subpanel">
-      <div class="label">GESTURE</div>
-      <div class="cg2" id="gest-name" style="font-family:var(--D);font-size:9px;letter-spacing:2px;margin-top:2px">NO HAND</div>
-      <div class="val-sm" id="gest-conf">CONFIDENCE —</div>
+      <div class="label">GESTO</div>
+      <div class="cg2" id="gest-name" style="font-family:var(--D);font-size:9px;letter-spacing:2px;margin-top:2px">NENHUMA MÃO</div>
+      <div class="val-sm" id="gest-conf">CONFIANÇA —</div>
       <div class="gi-row">
         <div class="gi" id="gi-open">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
@@ -1004,7 +1004,7 @@ canvas#wave{height:38px !important;}
         <div class="gi" id="gi-thumb">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
             <path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-          </svg>THUMB
+          </svg>POLEGAR
         </div>
       </div>
     </div>
@@ -1012,7 +1012,7 @@ canvas#wave{height:38px !important;}
     <!-- waveform -->
     <div class="subpanel">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px">
-        <div class="label" style="margin:0">NEURAL SIGNAL</div>
+        <div class="label" style="margin:0">SINAL NEURAL</div>
         <div class="val-sm" id="wave-hz">0.0 Hz</div>
       </div>
       <canvas id="wave" width="210" height="32"></canvas>
@@ -1020,7 +1020,7 @@ canvas#wave{height:38px !important;}
  
     <!-- coords -->
     <div class="subpanel">
-      <div class="label">TRACKING COORDINATES</div>
+      <div class="label">COORDENADAS DE RASTREAMENTO</div>
       <div class="coord-grid">
         <div class="coord-cell"><div class="coord-k">X</div><div class="coord-v" id="cx">—.———</div></div>
         <div class="coord-cell"><div class="coord-k">Y</div><div class="coord-v" id="cy">—.———</div></div>
@@ -1030,7 +1030,7 @@ canvas#wave{height:38px !important;}
  
     <!-- log -->
     <div class="log-box">
-      <div class="log-hd"><span>SYS LOG</span><div class="log-dot"></div></div>
+      <div class="log-hd"><span>REGISTRO DO SISTEMA</span><div class="log-dot"></div></div>
       <div class="log-body" id="log"></div>
     </div>
  
@@ -1041,12 +1041,12 @@ canvas#wave{height:38px !important;}
  
     <div class="tb">
       <div>
-        <div class="tb-title" data-t="WY // LIVE FEED">WY // LIVE FEED</div>
-        <div class="tb-sub">BIOMETRIC SCAN ACTIVE</div>
+        <div class="tb-title" data-t="WY // LIVE SINAL">WY // LIVE SINAL</div>
+        <div class="tb-sub">LEITURA BIOMÉTRICA ATIVA</div>
       </div>
       <div style="text-align:center">
         <div class="tc-id" id="stream-id">STREAM: —</div>
-        <div class="tc-live">RECORDING</div>
+        <div class="tc-live">GRAVANDO</div>
       </div>
       <div>
         <div class="tb-clock" id="clock">00:00:00</div>
@@ -1090,7 +1090,7 @@ canvas#wave{height:38px !important;}
         <svg width="9" height="9" viewBox="0 0 24 24" fill="#ff3b5f">
           <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"/>
         </svg>
-        BIOHAZARD DETECTED
+        BIOPERIGO DETECTED
       </div>
       <div class="bb-txt" id="latency">LATENCY: — ms</div>
     </div>
@@ -1101,46 +1101,46 @@ canvas#wave{height:38px !important;}
   <aside class="panel rsb">
  
     <div class="subpanel">
-      <div class="label">HAND TRACKING // 3D</div>
+      <div class="label">RASTREAMENTO DA MÃO // 3D</div>
       <canvas id="lmv" width="200" height="120"></canvas>
     </div>
  
     <div class="subpanel">
-      <div class="label">GESTURE INPUT // FINGER STATE</div>
+      <div class="label">GESTO INPUT // FINGER STATE</div>
       <div class="fbars">
-        <div class="fb"><div class="fb-lbl">THUMB</div><div class="fb-track"><div class="fb-fill" id="fb0" style="width:0%"></div></div><div class="fb-val" id="fv0">—</div></div>
-        <div class="fb"><div class="fb-lbl">INDEX</div><div class="fb-track"><div class="fb-fill" id="fb1" style="width:0%"></div></div><div class="fb-val" id="fv1">—</div></div>
-        <div class="fb"><div class="fb-lbl">MIDDLE</div><div class="fb-track"><div class="fb-fill" id="fb2" style="width:0%"></div></div><div class="fb-val" id="fv2">—</div></div>
-        <div class="fb"><div class="fb-lbl">RING</div><div class="fb-track"><div class="fb-fill" id="fb3" style="width:0%"></div></div><div class="fb-val" id="fv3">—</div></div>
-        <div class="fb"><div class="fb-lbl">PINKY</div><div class="fb-track"><div class="fb-fill" id="fb4" style="width:0%"></div></div><div class="fb-val" id="fv4">—</div></div>
+        <div class="fb"><div class="fb-lbl">POLEGAR</div><div class="fb-track"><div class="fb-fill" id="fb0" style="width:0%"></div></div><div class="fb-val" id="fv0">—</div></div>
+        <div class="fb"><div class="fb-lbl">INDICADOR</div><div class="fb-track"><div class="fb-fill" id="fb1" style="width:0%"></div></div><div class="fb-val" id="fv1">—</div></div>
+        <div class="fb"><div class="fb-lbl">MÉDIO</div><div class="fb-track"><div class="fb-fill" id="fb2" style="width:0%"></div></div><div class="fb-val" id="fv2">—</div></div>
+        <div class="fb"><div class="fb-lbl">ANELAR</div><div class="fb-track"><div class="fb-fill" id="fb3" style="width:0%"></div></div><div class="fb-val" id="fv3">—</div></div>
+        <div class="fb"><div class="fb-lbl">MINDINHO</div><div class="fb-track"><div class="fb-fill" id="fb4" style="width:0%"></div></div><div class="fb-val" id="fv4">—</div></div>
       </div>
     </div>
  
     <div class="subpanel">
-      <div class="label">THREAT ANALYSIS</div>
+      <div class="label">ANÁLISE DE AMEAÇA</div>
       <canvas id="rad" width="200" height="105"></canvas>
     </div>
  
     <div class="subpanel mission-panel">
-      <div class="label">MOTHER // MISSION DATA</div>
+      <div class="label">MOTHER // DADOS DA MISSÃO</div>
       <div class="mission-grid">
-        <div><span>SPECIMEN</span><b>LV-426</b></div>
-        <div><span>DIRECTIVE</span><b id="directive">CONTAIN</b></div>
-        <div><span>CREW</span><b id="crew-state">NOMINAL</b></div>
-        <div><span>HAZARD</span><b id="hazard-state">UNCONFIRMED</b></div>
+        <div><span>ESPÉCIME</span><b>LV-426</b></div>
+        <div><span>DIRETRIZ</span><b id="directive">CONTER</b></div>
+        <div><span>TRIPULAÇÃO</span><b id="crew-state">NORMAL</b></div>
+        <div><span>PERIGO</span><b id="hazard-state">NÃO CONFIRMADO</b></div>
       </div>
     </div>
 
     <div class="subpanel" style="flex:1;min-height:0;overflow:hidden;display:flex;flex-direction:column">
-      <div class="label">COMMAND HISTORY</div>
+      <div class="label">HISTÓRICO DE COMANDOS</div>
       <div class="gh-list" id="ghlist"></div>
     </div>
  
     <div class="subpanel">
-      <div class="ri-row"><div class="ri-k">NODE ID</div><div class="ri-v" id="r-sid">—</div></div>
-      <div class="ri-row"><div class="ri-k">UPTIME</div><div class="ri-v" id="r-up">00:00</div></div>
-      <div class="ri-row"><div class="ri-k">DETECTIONS</div><div class="ri-v" id="r-det">0</div></div>
-      <div class="ri-row"><div class="ri-k">AUDIOS PLAYED</div><div class="ri-v" id="r-audio">0</div></div>
+      <div class="ri-row"><div class="ri-k">ID DO NÓ</div><div class="ri-v" id="r-sid">—</div></div>
+      <div class="ri-row"><div class="ri-k">TEMPO ATIVO</div><div class="ri-v" id="r-up">00:00</div></div>
+      <div class="ri-row"><div class="ri-k">DETECÇÕES</div><div class="ri-v" id="r-det">0</div></div>
+      <div class="ri-row"><div class="ri-k">ÁUDIOS REPRODUZIDOS</div><div class="ri-v" id="r-audio">0</div></div>
     </div>
  
   </aside>
@@ -1170,14 +1170,14 @@ document.getElementById('btn-arduino').addEventListener('click', async () => {
 
         addLog('ARDUINO CONECTADO NA PORTA COM');
         document.getElementById('sys-status').innerText = 'ONLINE';
-        document.getElementById('arduino-state').innerText = 'ARDUINO // CONNECTED';
+        document.getElementById('arduino-state').innerText = 'ARDUINO // CONECTADO';
         
         // Estilo visual de botão ativado
         const btn = document.getElementById('btn-arduino');
         btn.classList.add('connected');
         btn.innerText = '[ COM CONECTADA ]';
     } catch (err) {
-        document.getElementById('arduino-state').innerText = 'ARDUINO // CONNECTION ERROR';
+        document.getElementById('arduino-state').innerText = 'ARDUINO // ERRO DE CONEXÃO';
         addLog('ERRO ARDUINO: ' + err.message);
     }
 });
@@ -1189,7 +1189,7 @@ async function send(data) {
           await serialWriter.write(data + "\n");
           addLog('ARDUINO TX // ' + data);
         } catch (err) {
-          document.getElementById('arduino-state').innerText = 'ARDUINO // TX ERROR';
+          document.getElementById('arduino-state').innerText = 'ARDUINO // ERRO DE TRANSMISSÃO';
           addLog('ARDUINO TX ERROR: ' + err.message);
         }
     } else {
@@ -1214,123 +1214,46 @@ const CFG = {
 ═══════════════════════════════════════════════════ */
 const DECODE_CFG = {
   charsPerSecond: 24,
-  scrambleMs: 21,
-  typingVolume: 0.5,
-  // If a real recording is later added, set this to:
-  // 'Sounds/typing.mp3'
-  typingFile: null
+  scrambleMs: 42,
+  startDelayMs: 5000
 };
 
 let decodeTimer = null;
+let decodeDelayTimer = null;
 let decodeRunId = 0;
-let typingCtx = null;
-let typingGain = null;
-let typingBuffer = null;
-
-function initTypingAudio(){
-  if (typingCtx) return;
-  const AC = window.AudioContext || window.webkitAudioContext;
-  if (!AC) return;
-  typingCtx = new AC();
-  typingGain = typingCtx.createGain();
-  typingGain.gain.value = DECODE_CFG.typingVolume;
-  typingGain.connect(typingCtx.destination);
-}
-
-async function loadTypingFile(){
-  if (!DECODE_CFG.typingFile || typingBuffer || !typingCtx) return;
-  try{
-    const r = await fetch(DECODE_CFG.typingFile);
-    const b = await r.arrayBuffer();
-    typingBuffer = await typingCtx.decodeAudioData(b);
-  }catch(e){
-    addLog('TYPING AUDIO FILE UNAVAILABLE — SYNTHETIC KEY CLICKS ACTIVE');
-  }
-}
-
-function playTypingTick(){
-  if (!typingCtx) return;
-  if (typingCtx.state === 'suspended') typingCtx.resume();
-
-  if (typingBuffer){
-    const s = typingCtx.createBufferSource();
-    const g = typingCtx.createGain();
-    s.buffer = typingBuffer;
-    g.gain.value = DECODE_CFG.typingVolume;
-    s.connect(g).connect(typingCtx.destination);
-    s.start();
-    return;
-  }
-
-  // Short mechanical terminal-key click: deliberately quiet.
-  const now = typingCtx.currentTime;
-  const osc = typingCtx.createOscillator();
-  const gain = typingCtx.createGain();
-  osc.type = 'square';
-  osc.frequency.setValueAtTime(1250 + Math.random()*260, now);
-  osc.frequency.exponentialRampToValueAtTime(760, now + 0.018);
-  gain.gain.setValueAtTime(DECODE_CFG.typingVolume, now);
-  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
-  osc.connect(gain).connect(typingGain);
-  osc.start(now);
-  osc.stop(now + 0.03);
-}
 
 function stopDecodeText(){
   decodeRunId++;
-  if (decodeTimer) {
-    clearInterval(decodeTimer);
-    decodeTimer = null;
-  }
+  if (decodeTimer) { clearInterval(decodeTimer); decodeTimer = null; }
+  if (decodeDelayTimer) { clearTimeout(decodeDelayTimer); decodeDelayTimer = null; }
 }
 
 function startDecodeText(audioNumber){
   stopDecodeText();
-  initTypingAudio();
-  loadTypingFile();
-
   const info = AUDIO_INFO[audioNumber];
   const el = audNarrativeEl;
   if (!el || !info) return;
-
   const run = decodeRunId;
   const finalText = `${info.title} — ${info.desc}`;
   const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&<>/[]{}*+-=_';
-  let pos = 0;
-  let scrambleUntil = 0;
 
-  el.classList.add('decode-live');
-  el.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
-  const textEl = el.querySelector('.decode-text');
-
-  // Fast typewriter cadence, with a brief scramble on each new character.
-  const interval = Math.max(18, Math.round(1000 / DECODE_CFG.charsPerSecond));
-
-  decodeTimer = setInterval(() => {
-    if (run !== decodeRunId || player.paused || player.ended) {
-      stopDecodeText();
-      return;
-    }
-
-    if (pos >= finalText.length) {
-      stopDecodeText();
-      return;
-    }
-
-    const current = finalText[pos];
-    if (current !== ' ') playTypingTick();
-
-    scrambleUntil = performance.now() + DECODE_CFG.scrambleMs;
-    textEl.textContent = finalText.slice(0, pos) +
-      glyphs[Math.floor(Math.random()*glyphs.length)];
-
-    setTimeout(() => {
-      if (run !== decodeRunId) return;
-      textEl.textContent = finalText.slice(0, pos + 1);
-    }, DECODE_CFG.scrambleMs);
-
-    pos++;
-  }, interval);
+  // O typewriter começa 5 segundos depois do início do áudio. Sem efeitos sonoros.
+  decodeDelayTimer = setTimeout(() => {
+    if (run !== decodeRunId || player.paused || player.ended) return;
+    let pos = 0;
+    el.classList.add('decode-live');
+    el.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
+    const textEl = el.querySelector('.decode-text');
+    const interval = Math.max(18, Math.round(1000 / DECODE_CFG.charsPerSecond));
+    decodeTimer = setInterval(() => {
+      if (run !== decodeRunId || player.paused || player.ended) { stopDecodeText(); return; }
+      if (pos >= finalText.length) { stopDecodeText(); return; }
+      const current = finalText[pos];
+      textEl.textContent = finalText.slice(0, pos) + (current === ' ' ? ' ' : glyphs[Math.floor(Math.random()*glyphs.length)]);
+      setTimeout(() => { if (run === decodeRunId) textEl.textContent = finalText.slice(0, pos + 1); }, DECODE_CFG.scrambleMs);
+      pos++;
+    }, interval);
+  }, DECODE_CFG.startDelayMs);
 }
 
  
@@ -1382,10 +1305,10 @@ let lastDomFlush   = 0;
 // audio
 let audioIndex     = 1;
 const AUDIO_INFO = {
-  1: { title:'CONTAINMENT BREACH', desc:'FALHA NO COMPARTIMENTO DE CARGA. A PRIORIDADE DA MOTHER MUDA PARA A PRESERVAÇÃO DOS ESPÉCIMES.', narrative:'MOTHER // VIOLAÇÃO DE CONTENÇÃO CONFIRMADA' },
-  2: { title:'BIOLOGICAL ANOMALY', desc:'ESCANEAMENTO EM CURSO. ANORMALIDADE NA FIAÇÃO. RISCO BIOLÓGICO DETECTADO.', narrative:'MOTHER // RISCO BIOLÓGICO CONFIRMADO' },
-  3: { title:'PROTOCOL 67', desc:'TRIPULANTE NEUTRALIZADO. A AMOSTRA LV-426 ESCAPOU. DALLAS É DESPERTADO.', narrative:'MOTHER // PROTOCOLO 67 ATIVO' },
-  4: { title:'HULL BREACH', desc:'FUSELAGEM COMPROMETIDA. A CONTENÇÃO É PERDIDA E AS AMOSTRAS SÃO EXPOSTAS AO VÁCUO.', narrative:'MOTHER // PERDA DE CONTENÇÃO' }
+  1: { title:'FALHA DE CONTENÇÃO', desc:'FALHA NO COMPARTIMENTO DE CARGA. A PRIORIDADE DA MOTHER MUDA PARA A PRESERVAÇÃO DOS ESPÉCIMES.', narrative:'MOTHER // VIOLAÇÃO DE CONTENÇÃO CONFIRMADA' },
+  2: { title:'ANOMALIA BIOLÓGICA', desc:'ESCANEAMENTO EM CURSO. ANORMALIDADE NA FIAÇÃO. RISCO BIOLÓGICO DETECTADO.', narrative:'MOTHER // RISCO BIOLÓGICO CONFIRMADO' },
+  3: { title:'PROTOCOLO 67', desc:'TRIPULANTE NEUTRALIZADO. A AMOSTRA LV-426 ESCAPOU. DALLAS É DESPERTADO.', narrative:'MOTHER // PROTOCOLO 67 ATIVO' },
+  4: { title:'RUPTURA DA FUSELAGEM', desc:'FUSELAGEM COMPROMETIDA. A CONTENÇÃO É PERDIDA E AS AMOSTRAS SÃO EXPOSTAS AO VÁCUO.', narrative:'MOTHER // PERDA DE CONTENÇÃO' }
 };
 let audiosPlayed   = 0;
 let progressTimer  = null;
@@ -1408,7 +1331,7 @@ let playing = false;
 const player = new Audio();
  
 /* ═══════════════════════════════════════════════════
-   SESSION ID
+   SESSÃO ID
 ═══════════════════════════════════════════════════ */
 const SID = 'WY-' + Math.random().toString(36).slice(2,7).toUpperCase();
 ['sess-id','stream-id','r-sid'].forEach(id => {
@@ -1420,13 +1343,13 @@ const SID = 'WY-' + Math.random().toString(36).slice(2,7).toUpperCase();
    BOOT LOG
 ═══════════════════════════════════════════════════ */
 const BOOT_LINES = [
-  'LOADING MEDIAPIPE RUNTIME…',
-  'CALIBRATING NEURAL ARRAYS…',
-  'HAND TRACKER INITIALIZED',
-  'GESTURE MAP LOADED [4 GESTURES]',
-  `AUDIO SEQUENCER — ${CFG.totalAudios} TRACKS QUEUED`,
-  'BIOMETRIC MODULE ACTIVE',
-  'CAMERA SUBSYSTEM STANDBY',
+  'CARREGANDO RUNTIME DO MEDIAPIPE…',
+  'CALIBRANDO ARRAYS NEURAIS…',
+  'RASTREAMENTO DE MÃO INICIALIZADO',
+  'GESTO MAP LOADED [4 GESTOS]',
+  `SEQUÊNCIA DE ÁUDIOR — ${CFG.totalAudios} TRACKS QUEUED`,
+  'MÓDULO BIOMÉTRICO ATIVO',
+  'CAMERA SUBSYSTEM AGUARDANDO',
 ];
 let bi = 0;
 const bBlog  = document.getElementById('blog');
@@ -1476,14 +1399,14 @@ function addLog(msg) {
 }
  
 /* ═══════════════════════════════════════════════════
-   GESTURE ICONS
+   GESTO ICONS
 ═══════════════════════════════════════════════════ */
 const GI_IDS = {
   'OPEN HAND':'gi-open',
   'ROCK':'gi-rock',
   'PEACE':'gi-peace',
-  'THUMB UP':'gi-thumb',
-  'THUMB DOWN':'gi-thumb'
+  'POLEGAR UP':'gi-thumb',
+  'POLEGAR DOWN':'gi-thumb'
 };
 let lastGI = null;
 function setGestureIcon(name) {
@@ -1494,7 +1417,7 @@ function setGestureIcon(name) {
 }
  
 /* ═══════════════════════════════════════════════════
-   GESTURE HISTORY
+   GESTO HISTORY
 ═══════════════════════════════════════════════════ */
 const ghListEl = document.getElementById('ghlist');
 function pushHistory(g) {
@@ -1522,7 +1445,7 @@ function updateFingerBars(states) {
 }
  
 /* ═══════════════════════════════════════════════════
-   DEBOUNCE RING
+   DEBOUNCE ANELAR
 ═══════════════════════════════════════════════════ */
 const DB_CIRC = 37.7;
 function setDbRing(progress /* 0–1 */) {
@@ -1544,12 +1467,12 @@ function setAudPanelState(state /* 'locked'|'idle'|'playing' */) {
   audPanelEl.classList.add(state);
  
   if (state === 'locked') {
-    audStateEl.innerText = 'LOCKED';
-    dbTxtEl.innerText    = 'LOCKED';
+    audStateEl.innerText = 'BLOQUEADO';
+    dbTxtEl.innerText    = 'BLOQUEADO';
     setDbRing(0);
   } else if (state === 'idle') {
-    audStateEl.innerText = 'STANDBY';
-    dbTxtEl.innerText    = 'READY — OPEN HAND TO PLAY';
+    audStateEl.innerText = 'AGUARDANDO';
+    dbTxtEl.innerText    = 'PRONTO — MÃO ABERTA PARA REPRODUZIR';
     setDbRing(1);
     audFillEl.style.width = '0%';
     clearInterval(progressTimer);
@@ -1566,72 +1489,71 @@ function setAudPanelState(state /* 'locked'|'idle'|'playing' */) {
 player.onended = () => {
   lockState = 'unlocked';
   setAudPanelState('idle');
-  addLog('AUDIO FINISHED — SEQUENCER READY');
+  addLog('ÁUDIO FINALIZADO — SEQUENCIADOR PRONTO');
 };
 player.onerror = () => {
   lockState = 'unlocked';
   setAudPanelState('idle');
-  addLog('AUDIO ERROR — CHECK FILE PATH');
+  addLog('ERRO DE ÁUDIO — VERIFIQUE O CAMINHO DO ARQUIVO');
 };
  
 function playNextAudio() {
-  // Se o player já estiver tocando, interrompe imediatamente
-  if (!player.paused) {
-      player.pause();
-      player.currentTime = 0;
-  }
+  if (!player.paused) { player.pause(); player.currentTime = 0; }
 
+  const playedAudioIndex = audioIndex;
+  const path = `${CFG.pastaSons}${playedAudioIndex}${CFG.extensao}`;
   lockState = 'playing';
+  playing = true;
   audiosPlayed++;
   setAudPanelState('playing');
   setTxt('r-audio', audiosPlayed);
- 
-  const path = `${CFG.pastaSons}${audioIndex}${CFG.extensao}`;
-  addLog(`AUDIO DISPATCH: ${path}`);
+
+  addLog(`ÁUDIO ENVIADO: ${path}`);
   const directiveEl = document.getElementById('directive');
   const crewEl = document.getElementById('crew-state');
   const hazardEl = document.getElementById('hazard-state');
-  const threat = ['CRITICAL','HIGH','SEVERE','MAXIMUM'][audioIndex-1] || 'UNKNOWN';
-  if (directiveEl) directiveEl.innerText = audioIndex >= 3 ? 'PRESERVE SPECIMEN' : 'CONTAIN';
-  if (crewEl) crewEl.innerText = audioIndex >= 3 ? 'COMPROMISED' : (audioIndex === 2 ? 'ALERT' : 'NOMINAL');
+  const threat = ['CRÍTICO','ALTO','SEVERO','MÁXIMO'][playedAudioIndex-1] || 'DESCONHECIDO';
+  if (directiveEl) directiveEl.innerText = playedAudioIndex >= 3 ? 'PRESERVAR ESPÉCIME' : 'CONTER';
+  if (crewEl) crewEl.innerText = playedAudioIndex >= 3 ? 'COMPROMETIDA' : (playedAudioIndex === 2 ? 'ALERTA' : 'NORMAL');
   if (hazardEl) hazardEl.innerText = threat;
- 
-  // flash overlay on camera
+
   audioFlash.classList.add('pop');
   setTimeout(() => audioFlash.classList.remove('pop'), 180);
- 
+
+  // O painel fica no áudio que realmente está tocando. Só avança quando terminar.
+  audioIndex = playedAudioIndex;
+  updateAudDisplay();
   player.src = path;
-  player.play()
-    .then(() => {
-      initTypingAudio();
-      if (typingCtx && typingCtx.state === 'suspended') typingCtx.resume();
-      startDecodeText(audioIndex);
-      clearInterval(progressTimer);
-      progressTimer = setInterval(() => {
-        if (!player.duration) return;
-        audFillEl.style.width = (player.currentTime / player.duration * 100) + '%';
-      }, 80);
-    })
-    .catch(err => {
-      console.warn('Audio blocked:', err);
-      lockState = 'unlocked';
-      setAudPanelState('idle');
-      addLog('AUDIO BLOCKED — CLICK PAGE FIRST');
-    });
+  player.play().then(() => {
+    startDecodeText(playedAudioIndex);
+    clearInterval(progressTimer);
+    progressTimer = setInterval(() => {
+      if (player.duration) audFillEl.style.width = (player.currentTime / player.duration * 100) + '%';
+    }, 80);
+  }).catch(err => {
+    console.warn('Áudio bloqueado:', err);
+    stopDecodeText();
+    lockState = 'unlocked'; playing = false;
+    setAudPanelState('idle');
+    addLog('ÁUDIO BLOQUEADO — CLIQUE NA PÁGINA PRIMEIRO');
+  });
 
   player.onended = () => {
     stopDecodeText();
-    audPanelEl.classList.remove('playing');
-    setTxt('aud-state', 'COMPLETE');
+    clearInterval(progressTimer);
+    audFillEl.style.width = '100%';
+    playing = false;
+    lockState = 'unlocked';
+    setAudPanelState('idle');
+    setTxt('aud-state', 'CONCLUÍDO');
+    addLog('ÁUDIO FINALIZADO — SEQUENCIADOR PRONTO');
+    audioIndex = (playedAudioIndex % CFG.totalAudios) + 1;
+    updateAudDisplay();
   };
 
-  // ENVIA O NÍVEL ATUAL PARA O ARDUINO
-  send(String(audioIndex));
- 
-  audioIndex = (audioIndex % CFG.totalAudios) + 1;
-  updateAudDisplay();
+  send(String(playedAudioIndex));
 }
- 
+
 /* ═══════════════════════════════════════════════════
    FPS GRAPH (rAF loop)
 ═══════════════════════════════════════════════════ */
@@ -1641,7 +1563,7 @@ function playNextAudio() {
   const W = c.width, H = c.height;
   function draw() {
     x.fillStyle = 'rgba(0,0,0,.65)'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = 'rgba(125,255,90,.1)'; x.lineWidth = 1;
+    x.strokeStyle = 'rgba(105,135,48,.1)'; x.lineWidth = 1;
     [15, 30, 60].forEach(v => {
       const y = H - Math.min(v / 65, 1) * H;
       x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke();
@@ -1652,9 +1574,9 @@ function playNextAudio() {
       const px = i * step, py = H - Math.min(v / 65, 1) * H;
       i === 0 ? x.moveTo(px, py) : x.lineTo(px, py);
     });
-    x.strokeStyle = 'rgba(125,255,90,.7)'; x.lineWidth = 1.5; x.stroke();
+    x.strokeStyle = 'rgba(105,135,48,.7)'; x.lineWidth = 1.5; x.stroke();
     x.lineTo(W, H); x.lineTo(0, H); x.closePath();
-    x.fillStyle = 'rgba(125,255,90,.05)'; x.fill();
+    x.fillStyle = 'rgba(105,135,48,.05)'; x.fill();
     requestAnimationFrame(draw);
   }
   draw();
@@ -1672,8 +1594,8 @@ function playNextAudio() {
     waveAmp += (waveTarget - waveAmp) * 0.07;
     hzPhase += 0.05;
     x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
-    x.strokeStyle = 'rgba(125,255,90,.62)'; x.lineWidth = 1.4;
-    x.shadowColor = 'rgba(125,255,90,.3)'; x.shadowBlur = 3;
+    x.strokeStyle = 'rgba(105,135,48,.62)'; x.lineWidth = 1.4;
+    x.shadowColor = 'rgba(105,135,48,.3)'; x.shadowBlur = 3;
     x.beginPath();
     for (let i = 0; i < W; i++) {
       const t = (i / W) * Math.PI * 8 + phase;
@@ -1706,28 +1628,28 @@ function playNextAudio() {
     x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
     [1, .65, .35].forEach(f => {
       x.beginPath(); x.ellipse(CX, CY, RX*f, RY*f, 0, 0, Math.PI*2);
-      x.strokeStyle = 'rgba(125,255,90,.07)'; x.lineWidth = 1; x.stroke();
+      x.strokeStyle = 'rgba(105,135,48,.07)'; x.lineWidth = 1; x.stroke();
     });
-    x.strokeStyle = 'rgba(125,255,90,.06)'; x.lineWidth = 1;
+    x.strokeStyle = 'rgba(105,135,48,.06)'; x.lineWidth = 1;
     x.beginPath(); x.moveTo(4, CY); x.lineTo(W-4, CY); x.stroke();
     x.beginPath(); x.moveTo(CX, 4); x.lineTo(CX, H-4); x.stroke();
     const rad  = (ang-90)*Math.PI/180;
     const rad0 = ((ang-35)-90)*Math.PI/180;
     const ex   = CX + RX * Math.cos(rad), ey = CY + RY * Math.sin(rad);
     const grad = x.createLinearGradient(CX, CY, ex, ey);
-    grad.addColorStop(0, 'rgba(125,255,90,0)'); grad.addColorStop(1, 'rgba(125,255,90,.12)');
+    grad.addColorStop(0, 'rgba(105,135,48,0)'); grad.addColorStop(1, 'rgba(105,135,48,.12)');
     x.beginPath(); x.moveTo(CX, CY); x.ellipse(CX, CY, RX, RY, 0, rad0, rad); x.closePath();
     x.fillStyle = grad; x.fill();
     x.beginPath(); x.moveTo(CX, CY); x.lineTo(ex, ey);
-    x.strokeStyle = 'rgba(125,255,90,.55)'; x.lineWidth = 1.5; x.stroke();
+    x.strokeStyle = 'rgba(105,135,48,.55)'; x.lineWidth = 1.5; x.stroke();
     blips.forEach(b => {
       b.age++;
       const a = Math.max(0, 1 - b.age / 80);
       x.beginPath(); x.arc(b.bx, b.by, 2.5, 0, Math.PI*2);
-      x.fillStyle = `rgba(125,255,90,${a})`; x.fill();
+      x.fillStyle = `rgba(105,135,48,${a})`; x.fill();
       if (a > 0.5) {
         x.beginPath(); x.arc(b.bx, b.by, 5, 0, Math.PI*2);
-        x.strokeStyle = `rgba(125,255,90,${(a-.5)*.35})`; x.lineWidth = 1; x.stroke();
+        x.strokeStyle = `rgba(105,135,48,${(a-.5)*.35})`; x.lineWidth = 1; x.stroke();
       }
     });
     ang = (ang + 1.1) % 360;
@@ -1756,7 +1678,7 @@ let currentLM = null;
   function draw() {
     x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
     if (currentLM) {
-      x.strokeStyle = 'rgba(125,255,90,.4)'; x.lineWidth = 1;
+      x.strokeStyle = 'rgba(105,135,48,.4)'; x.lineWidth = 1;
       CONN.forEach(([a, b]) => {
         const [ax,ay] = proj(currentLM[a], W, H);
         const [bx,by] = proj(currentLM[b], W, H);
@@ -1765,15 +1687,15 @@ let currentLM = null;
       currentLM.forEach((lm, i) => {
         const [px,py] = proj(lm, W, H);
         x.beginPath(); x.arc(px, py, i===0?3:2, 0, Math.PI*2);
-        x.fillStyle = i===0 ? 'rgba(125,255,90,.9)' : 'rgba(125,255,90,.6)';
+        x.fillStyle = i===0 ? 'rgba(105,135,48,.9)' : 'rgba(105,135,48,.6)';
         x.fill();
       });
     } else {
-      x.strokeStyle = 'rgba(125,255,90,.07)'; x.lineWidth = 1;
+      x.strokeStyle = 'rgba(105,135,48,.07)'; x.lineWidth = 1;
       x.beginPath(); x.moveTo(W/2-18,H/2); x.lineTo(W/2+18,H/2); x.stroke();
       x.beginPath(); x.moveTo(W/2,H/2-10); x.lineTo(W/2,H/2+10); x.stroke();
-      x.font = '7px Share Tech Mono'; x.fillStyle = 'rgba(125,255,90,.18)';
-      x.textAlign = 'center'; x.fillText('NO HAND', W/2, H-6);
+      x.font = '7px Share Tech Mono'; x.fillStyle = 'rgba(105,135,48,.18)';
+      x.textAlign = 'center'; x.fillText('NENHUMA MÃO', W/2, H-6);
     }
     requestAnimationFrame(draw);
   }
@@ -1795,7 +1717,7 @@ async function startCamera() {
  
     sdotEl.classList.add('on');
     setTxt('sys-status', 'ONLINE');
-    setTxt('sys-sub', 'FEED ACTIVE');
+    setTxt('sys-sub', 'SINAL ACTIVE');
     setTxt('feed-state', 'LIVE');
     setTxt('resol', '960×540 // 30fps CAPTURE');
     sigEl.classList.add('on');
@@ -1894,13 +1816,13 @@ function onResults(res) {
     const [bx,by] = toScreen(lm[b]);
     camCtx.moveTo(ax, ay); camCtx.lineTo(bx, by);
   });
-  camCtx.strokeStyle = 'rgba(125,255,90,.65)'; camCtx.lineWidth = 1.8; camCtx.stroke();
+  camCtx.strokeStyle = 'rgba(105,135,48,.65)'; camCtx.lineWidth = 1.8; camCtx.stroke();
  
   // key landmarks
   [0,4,8,12,16,20,5,9,13,17].forEach(i => {
     const [px,py] = toScreen(lm[i]);
     camCtx.beginPath(); camCtx.arc(px, py, i===0 ? 5 : 3.5, 0, Math.PI*2);
-    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.9)' : 'rgba(125,255,90,.85)';
+    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.9)' : 'rgba(105,135,48,.85)';
     camCtx.fill();
   });
  
@@ -1908,14 +1830,14 @@ function onResults(res) {
   const xs = lm.map(p => p.x * W), ys = lm.map(p => p.y * H);
   const x1 = Math.min(...xs)-18, y1 = Math.min(...ys)-18;
   const x2 = Math.max(...xs)+18, y2 = Math.max(...ys)+18;
-  camCtx.strokeStyle = 'rgba(125,255,90,.32)'; camCtx.lineWidth = 1;
+  camCtx.strokeStyle = 'rgba(105,135,48,.32)'; camCtx.lineWidth = 1;
   camCtx.strokeRect(x1, y1, x2-x1, y2-y1);
   const bc = (cx,cy,dx,dy) => {
     camCtx.beginPath();
     camCtx.moveTo(cx+dx*16, cy); camCtx.lineTo(cx, cy); camCtx.lineTo(cx, cy+dy*16);
     camCtx.stroke();
   };
-  camCtx.strokeStyle = 'rgba(125,255,90,.9)'; camCtx.lineWidth = 2;
+  camCtx.strokeStyle = 'rgba(105,135,48,.9)'; camCtx.lineWidth = 2;
   bc(x1,y1, 1, 1); bc(x2,y1,-1, 1); bc(x1,y2, 1,-1); bc(x2,y2,-1,-1);
  
   /* ── classify fingers ── */
@@ -1932,7 +1854,7 @@ function onResults(res) {
   else if (index && !middle && !ring && pinky)           gesture = 'ROCK';
   else if (index && middle && !ring && !pinky)           gesture = 'PEACE';
   else if (thumb && !index && !middle && !ring && !pinky)
-  gesture = 'THUMB UP';
+  gesture = 'POLEGAR UP';
 
 else if (
   lm[4].y > lm[3].y &&
@@ -1941,15 +1863,15 @@ else if (
   !ring &&
   !pinky
 )
-  gesture = 'THUMB DOWN';
+  gesture = 'POLEGAR DOWN';
 
 /* wave amplitude mapping */
 const ampMap = {
   'OPEN HAND':14,
   'ROCK':22,
   'PEACE':18,
-  'THUMB UP':16,
-  'THUMB DOWN':16,
+  'POLEGAR UP':16,
+  'POLEGAR DOWN':16,
   'TRACKING':8
 };
 
@@ -1970,8 +1892,8 @@ waveTarget = ampMap[gesture] || 8;
         bootEl.classList.add('gone');
         camLockMask.classList.add('hidden');
         setAudPanelState('idle');
-        addLog('AUTHORIZATION GRANTED — SYSTEM ONLINE');
-        addLog('SEQUENCER UNLOCKED — OPEN HAND TO PLAY');
+        addLog('AUTORIZAÇÃO CONCEDIDA — SISTEMA ONLINE');
+        addLog('SEQUENCER UNBLOQUEADO — OPEN HAND TO PLAY');
         pushHistory('OPEN HAND');
       }
     } else {
@@ -1991,7 +1913,7 @@ waveTarget = ampMap[gesture] || 8;
  
       if (!handWasOpen && (now - openHandStartTime >= CFG.debounceMs)) {
         handWasOpen = true;
-        dbTxtEl.innerText = 'DISPATCHING…';
+        dbTxtEl.innerText = 'ENVIANDO…';
 
         if (lockState === 'playing') {
             addLog('ÁUDIO INTERROMPIDO — MUDANDO DE FAIXA');
@@ -2007,7 +1929,7 @@ waveTarget = ampMap[gesture] || 8;
       handWasOpen = false;
       openHandStartTime = 0;
       setDbRing(1);
-      dbTxtEl.innerText = lockState === 'playing' ? 'REPRODUZINDO...' : 'READY — OPEN HAND TO PLAY';
+      dbTxtEl.innerText = lockState === 'playing' ? 'REPRODUZINDO...' : 'PRONTO — MÃO ABERTA PARA REPRODUZIR';
     }
  
     /* ROCK / PEACE funcionam apenas se o áudio não estiver tocando */
@@ -2021,7 +1943,7 @@ waveTarget = ampMap[gesture] || 8;
         player.src = 'Sounds/arma.mp3';
         player.play();
 
-        addLog('GESTURE: ROCK — ARMA');
+        addLog('GESTO: ROCK — ARMA');
 
         setTimeout(() => {
             rockCool = false;
@@ -2036,14 +1958,14 @@ waveTarget = ampMap[gesture] || 8;
         player.src = 'Sounds/hipersono.mp3';
         player.play();
 
-        addLog('GESTURE: PEACE — HIPERSONO');
+        addLog('GESTO: PEACE — HIPERSONO');
 
         setTimeout(() => {
             peaceCool = false;
         }, 3000);
     }
 
-    else if (gesture === 'THUMB DOWN' && !thumbCool) {
+    else if (gesture === 'POLEGAR DOWN' && !thumbCool) {
         thumbCool = true;
 
         player.pause();
@@ -2051,7 +1973,7 @@ waveTarget = ampMap[gesture] || 8;
         player.src = 'Sounds/explosao.mp3';
         player.play();
 
-        addLog('GESTURE: THUMB DOWN — EXPLOSAO');
+        addLog('GESTO: POLEGAR DOWN — EXPLOSAO');
 
         setTimeout(() => {
             thumbCool = false;
@@ -2074,7 +1996,7 @@ waveTarget = ampMap[gesture] || 8;
   gtagEl.style.left = `${(tx/W)*100}%`;
   gtagEl.style.top  = `${(ty/H)*100}%`;
   gtagEl.style.display = 'block';
-  gtagEl.innerText = gesture;
+  gtagEl.innerText = ({'OPEN HAND':'MÃO ABERTA','ROCK':'ROCK','PEACE':'PAZ','THUMB UP':'POLEGAR PARA CIMA','THUMB DOWN':'POLEGAR PARA BAIXO','TRACKING':'RASTREANDO'}[gesture] || gesture);
  
   updateFingerBars([thumb, index, middle, ring, pinky]);
   domBatch(gesture, lm, fps);
@@ -2094,12 +2016,12 @@ function domBatch(gesture, lm, fpsVal) {
   lastDomFlush = now;
  
   if (gesture === null) {
-    setTxt('gest-name', 'NO HAND');
-    setTxt('gest-conf', 'CONFIDENCE —');
+    setTxt('gest-name', 'NENHUMA MÃO');
+    setTxt('gest-conf', 'CONFIANÇA —');
     setTxt('cx','—.———'); setTxt('cy','—.———'); setTxt('cz','—.———');
   } else {
-    setTxt('gest-name', gesture);
-    setTxt('gest-conf', 'CONFIDENCE — ' + Math.round(70 + Math.random() * 25) + '%');
+    setTxt('gest-name', ({'OPEN HAND':'MÃO ABERTA','ROCK':'ROCK','PEACE':'PAZ','THUMB UP':'POLEGAR PARA CIMA','THUMB DOWN':'POLEGAR PARA BAIXO','TRACKING':'RASTREANDO'}[gesture] || gesture));
+    setTxt('gest-conf', 'CONFIANÇA — ' + Math.round(70 + Math.random() * 25) + '%');
     if (lm) {
       setTxt('cx', lm[8].x.toFixed(3));
       setTxt('cy', lm[8].y.toFixed(3));
@@ -2109,7 +2031,7 @@ function domBatch(gesture, lm, fpsVal) {
   if (fpsVal !== null) {
     setTxt('fps-num', fpsVal);
     setTxt('frame-ct', totalFrames.toLocaleString());
-    setTxt('latency', 'LATENCY: ' + (1000 / Math.max(fpsVal,1)).toFixed(0) + ' ms');
+    setTxt('latency', 'LATÊNCIA: ' + (1000 / Math.max(fpsVal,1)).toFixed(0) + ' ms');
     setTxt('r-det', detections.toLocaleString());
   }
 }
