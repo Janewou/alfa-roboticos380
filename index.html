@@ -15,9 +15,9 @@
   --g2:  #c7f04a;
   --g60: rgba(125,255,90,.6);
   --g08: rgba(125,255,90,.08);
-  --r:   #ff3b5f;
-  --amb: #ffb830;
-  --teal:#00ffcd;
+  --r:   #00470c;
+  --amb: #034e00;
+  --teal:#000285;
   --bg:  #010301;
   --M:   'Share Tech Mono', monospace;
   --D:   'Orbitron', sans-serif;
@@ -28,7 +28,7 @@
 }
 *,*::before,*::after { margin:0; padding:0; box-sizing:border-box; }
 html,body { width:100%; height:100%; overflow:hidden; background:#000;
-  font-family:var(--M); color:#c8f5c0; font-size:14px; }
+  font-family:var(--M); color:#0a4400; font-size:14px; }
  
 body {
   background:
@@ -831,6 +831,40 @@ canvas#wave{height:38px !important;}
   .aud-name{font-size:14px !important;}
 }
 
+
+/* V4 — MOTHER terminal text decode / typewriter */
+.aud-narrative.decode-live{
+  min-height:58px !important;
+  position:relative;
+  overflow:hidden;
+  color:#dff58a !important;
+  border-left:3px solid #9bbc0f !important;
+  background:rgba(155,188,15,.075) !important;
+  text-shadow:0 0 5px rgba(155,188,15,.35) !important;
+  font-family:var(--D), monospace !important;
+  letter-spacing:1.8px !important;
+}
+.aud-narrative.decode-live::after{
+  content:"_";
+  display:inline-block;
+  margin-left:2px;
+  color:#c7e26a;
+  animation:motherCursor .65s steps(1,end) infinite;
+}
+@keyframes motherCursor{
+  0%,49%{opacity:1}
+  50%,100%{opacity:0}
+}
+.aud.playing .aud-narrative.decode-live{
+  border-left-color:#c7e26a !important;
+}
+.decode-prefix{
+  color:#71862a;
+}
+.decode-text{
+  color:#dff58a;
+}
+
 </style>
 </head>
 <body>
@@ -1171,6 +1205,134 @@ const CFG = {
   extensao    : '.mp3',
   debounceMs  : 150,   // ms de mão aberta contínua para confirmar gesto
 };
+
+/* ═══════════════════════════════════════════════════
+   MOTHER TEXT DECODE / TYPEWRITER
+   No external asset required: the typing sound is
+   synthesized locally and mixed very quietly so it
+   remains perceptible without covering AUDIO 01–04.
+═══════════════════════════════════════════════════ */
+const DECODE_CFG = {
+  charsPerSecond: 24,
+  scrambleMs: 21,
+  typingVolume: 0.5,
+  // If a real recording is later added, set this to:
+  // 'Sounds/typing.mp3'
+  typingFile: null
+};
+
+let decodeTimer = null;
+let decodeRunId = 0;
+let typingCtx = null;
+let typingGain = null;
+let typingBuffer = null;
+
+function initTypingAudio(){
+  if (typingCtx) return;
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  typingCtx = new AC();
+  typingGain = typingCtx.createGain();
+  typingGain.gain.value = DECODE_CFG.typingVolume;
+  typingGain.connect(typingCtx.destination);
+}
+
+async function loadTypingFile(){
+  if (!DECODE_CFG.typingFile || typingBuffer || !typingCtx) return;
+  try{
+    const r = await fetch(DECODE_CFG.typingFile);
+    const b = await r.arrayBuffer();
+    typingBuffer = await typingCtx.decodeAudioData(b);
+  }catch(e){
+    addLog('TYPING AUDIO FILE UNAVAILABLE — SYNTHETIC KEY CLICKS ACTIVE');
+  }
+}
+
+function playTypingTick(){
+  if (!typingCtx) return;
+  if (typingCtx.state === 'suspended') typingCtx.resume();
+
+  if (typingBuffer){
+    const s = typingCtx.createBufferSource();
+    const g = typingCtx.createGain();
+    s.buffer = typingBuffer;
+    g.gain.value = DECODE_CFG.typingVolume;
+    s.connect(g).connect(typingCtx.destination);
+    s.start();
+    return;
+  }
+
+  // Short mechanical terminal-key click: deliberately quiet.
+  const now = typingCtx.currentTime;
+  const osc = typingCtx.createOscillator();
+  const gain = typingCtx.createGain();
+  osc.type = 'square';
+  osc.frequency.setValueAtTime(1250 + Math.random()*260, now);
+  osc.frequency.exponentialRampToValueAtTime(760, now + 0.018);
+  gain.gain.setValueAtTime(DECODE_CFG.typingVolume, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.028);
+  osc.connect(gain).connect(typingGain);
+  osc.start(now);
+  osc.stop(now + 0.03);
+}
+
+function stopDecodeText(){
+  decodeRunId++;
+  if (decodeTimer) {
+    clearInterval(decodeTimer);
+    decodeTimer = null;
+  }
+}
+
+function startDecodeText(audioNumber){
+  stopDecodeText();
+  initTypingAudio();
+  loadTypingFile();
+
+  const info = AUDIO_INFO[audioNumber];
+  const el = audNarrativeEl;
+  if (!el || !info) return;
+
+  const run = decodeRunId;
+  const finalText = `${info.title} — ${info.desc}`;
+  const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&<>/[]{}*+-=_';
+  let pos = 0;
+  let scrambleUntil = 0;
+
+  el.classList.add('decode-live');
+  el.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
+  const textEl = el.querySelector('.decode-text');
+
+  // Fast typewriter cadence, with a brief scramble on each new character.
+  const interval = Math.max(18, Math.round(1000 / DECODE_CFG.charsPerSecond));
+
+  decodeTimer = setInterval(() => {
+    if (run !== decodeRunId || player.paused || player.ended) {
+      stopDecodeText();
+      return;
+    }
+
+    if (pos >= finalText.length) {
+      stopDecodeText();
+      return;
+    }
+
+    const current = finalText[pos];
+    if (current !== ' ') playTypingTick();
+
+    scrambleUntil = performance.now() + DECODE_CFG.scrambleMs;
+    textEl.textContent = finalText.slice(0, pos) +
+      glyphs[Math.floor(Math.random()*glyphs.length)];
+
+    setTimeout(() => {
+      if (run !== decodeRunId) return;
+      textEl.textContent = finalText.slice(0, pos + 1);
+    }, DECODE_CFG.scrambleMs);
+
+    pos++;
+  }, interval);
+}
+
  
 /* ═══════════════════════════════════════════════════
    REFS
@@ -1441,6 +1603,9 @@ function playNextAudio() {
   player.src = path;
   player.play()
     .then(() => {
+      initTypingAudio();
+      if (typingCtx && typingCtx.state === 'suspended') typingCtx.resume();
+      startDecodeText(audioIndex);
       clearInterval(progressTimer);
       progressTimer = setInterval(() => {
         if (!player.duration) return;
@@ -1453,6 +1618,12 @@ function playNextAudio() {
       setAudPanelState('idle');
       addLog('AUDIO BLOCKED — CLICK PAGE FIRST');
     });
+
+  player.onended = () => {
+    stopDecodeText();
+    audPanelEl.classList.remove('playing');
+    setTxt('aud-state', 'COMPLETE');
+  };
 
   // ENVIA O NÍVEL ATUAL PARA O ARDUINO
   send(String(audioIndex));
