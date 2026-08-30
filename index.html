@@ -378,30 +378,6 @@ canvas#cam {
  
 /* HUD overlay */
 .hud { position:absolute; inset:0; pointer-events:none; z-index:5; }
-
-/* Alertas de áudio — piscam sobre a HUD inteira */
-.app::after {
-  content:""; position:fixed; inset:0; pointer-events:none; z-index:999;
-  opacity:0;
-}
-.app.alert-red::after {
-  background:rgba(255,30,55,.20);
-  box-shadow:inset 0 0 0 5px rgba(255,30,55,.65), inset 0 0 80px rgba(255,30,55,.35);
-  animation:hudAlertRed .28s steps(1,end) infinite;
-}
-.app.alert-orange::after {
-  background:rgba(255,125,20,.20);
-  box-shadow:inset 0 0 0 5px rgba(255,125,20,.65), inset 0 0 80px rgba(255,125,20,.35);
-  animation:hudAlertOrange .28s steps(1,end) infinite;
-}
-@keyframes hudAlertRed {
-  0%,49% { opacity:1; }
-  50%,100% { opacity:0; }
-}
-@keyframes hudAlertOrange {
-  0%,49% { opacity:1; }
-  50%,100% { opacity:0; }
-}
 .corner { position:absolute; width:44px; height:44px; border-color:var(--g); border-style:solid; opacity:.5; }
 .corner::before { content:""; position:absolute; width:4px; height:4px; border-radius:50%;
   background:var(--g); box-shadow:0 0 5px var(--g); }
@@ -471,7 +447,21 @@ canvas#cam {
 }
 .cam-lock-sub { font-size:9px; letter-spacing:3px; color:rgba(255,59,95,.45); }
  
+/* persistent full-HUD alarm */
+body::after { content:""; position:fixed; inset:0; z-index:9998; pointer-events:none; opacity:0; }
+body.alarm-red::after { animation:hudAlarmRed .42s steps(2,end) infinite; }
+body.alarm-orange::after { animation:hudAlarmOrange .42s steps(2,end) infinite; }
+@keyframes hudAlarmRed {
+  0%,100% { opacity:0; box-shadow:inset 0 0 0 2px rgba(255,40,60,.05), inset 0 0 80px rgba(255,30,50,.02); }
+  50% { opacity:1; box-shadow:inset 0 0 0 5px rgba(255,40,60,.62), inset 0 0 120px rgba(255,30,50,.16); }
+}
+@keyframes hudAlarmOrange {
+  0%,100% { opacity:0; box-shadow:inset 0 0 0 2px rgba(255,150,30,.05), inset 0 0 80px rgba(255,120,20,.02); }
+  50% { opacity:1; box-shadow:inset 0 0 0 5px rgba(255,150,30,.62), inset 0 0 120px rgba(255,120,20,.16); }
+}
+
 /* audio flash pop */
+
 .audioflash {
   position:absolute; inset:0; z-index:8; pointer-events:none;
   background:rgba(105,135,48,0); transition:background .06s;
@@ -971,12 +961,12 @@ canvas#wave{height:38px !important;}
  
       <div class="label">SEQUÊNCIA DE ÁUDIO</div>
       <div class="aud-track">
-        <div id="aud-num" class="aud-num">00</div>
+        <div id="aud-num" class="aud-num">01</div>
         <div class="aud-info">
-          <div class="aud-name" id="aud-name">APRESENTAÇÃO</div>
-          <div class="aud-desc" id="aud-desc">SISTEMA DE APRESENTAÇÃO // NOSTROMO // MOTHER ONLINE.</div>
+          <div class="aud-name" id="aud-name">ÁUDIO 01</div>
+          <div class="aud-desc" id="aud-desc">FALHA DE CONTENÇÃO — MOTHER REDEFINE A PRIORIDADE DA MISSÃO.</div>
           <div class="aud-state" id="aud-state">AGUARDANDO</div>
-          <div class="aud-narrative" id="aud-narrative">APRESENTAÇÃO PRONTA // AGUARDANDO O PRIMEIRO ÁUDIO</div>
+          <div class="aud-narrative" id="aud-narrative">SISTEMA PRONTO // AGUARDANDO AUTORIZAÇÃO</div>
         </div>
       </div>
       <div class="aud-bar">
@@ -1023,12 +1013,12 @@ canvas#wave{height:38px !important;}
         <div class="gi" id="gi-peace">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
             <path d="M9 12V5a2 2 0 0 1 4 0v7M13 12V9a2 2 0 0 1 4 0v5a6 6 0 0 1-12 0v-2a2 2 0 0 1 4 0v1"/>
-          </svg>PEACE
+          </svg>PAZ / HIPERSONO
         </div>
         <div class="gi" id="gi-thumb">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7dff5a" stroke-width="1.6">
             <path d="M7 10v12M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"/>
-          </svg>POLEGAR
+          </svg>POLEGAR / CANCELAR
         </div>
       </div>
     </div>
@@ -1236,51 +1226,59 @@ const CFG = {
    synthesized locally and mixed very quietly so it
    remains perceptible without covering AUDIO 01–04.
 ═══════════════════════════════════════════════════ */
-const DECODE_CFG = {
-  charsPerSecond: 24,
-  scrambleMs: 42,
-  startDelayMs: 5000
-};
-
+const DECODE_CFG = { charsPerSecond: 24, scrambleMs: 42 };
 let decodeTimer = null;
 let decodeDelayTimer = null;
 let decodeRunId = 0;
 
 function stopDecodeText(){
   decodeRunId++;
-  if (decodeTimer) { clearInterval(decodeTimer); decodeTimer = null; }
   if (decodeDelayTimer) { clearTimeout(decodeDelayTimer); decodeDelayTimer = null; }
+  if (decodeTimer) { clearInterval(decodeTimer); decodeTimer = null; }
 }
 
 function startDecodeText(audioNumber){
   stopDecodeText();
   const info = AUDIO_INFO[audioNumber];
   const el = audNarrativeEl;
-  if (!el || !info) return;
+  if (!el || !info || audioNumber === 0) return;
+
   const run = decodeRunId;
   const finalText = `${info.title} — ${info.desc}`;
   const glyphs = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789#$%&<>/[]{}*+-=_';
+  let pos = 0;
 
-  // O typewriter começa 5 segundos depois do início do áudio. Sem efeitos sonoros.
+  // O texto só começa 5 segundos depois do áudio iniciar.
   decodeDelayTimer = setTimeout(() => {
     if (run !== decodeRunId || player.paused || player.ended) return;
-    let pos = 0;
+
     el.classList.add('decode-live');
     el.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
     const textEl = el.querySelector('.decode-text');
     const interval = Math.max(18, Math.round(1000 / DECODE_CFG.charsPerSecond));
+
     decodeTimer = setInterval(() => {
-      if (run !== decodeRunId || player.paused || player.ended) { stopDecodeText(); return; }
-      if (pos >= finalText.length) { stopDecodeText(); return; }
+      if (run !== decodeRunId || player.paused || player.ended) {
+        stopDecodeText();
+        return;
+      }
+      if (pos >= finalText.length) {
+        clearInterval(decodeTimer); decodeTimer = null;
+        textEl.textContent = finalText;
+        return;
+      }
       const current = finalText[pos];
-      textEl.textContent = finalText.slice(0, pos) + (current === ' ' ? ' ' : glyphs[Math.floor(Math.random()*glyphs.length)]);
-      setTimeout(() => { if (run === decodeRunId) textEl.textContent = finalText.slice(0, pos + 1); }, DECODE_CFG.scrambleMs);
+      textEl.textContent = finalText.slice(0,pos) +
+        (current === ' ' ? ' ' : glyphs[Math.floor(Math.random()*glyphs.length)]);
+      const committedPos = pos + 1;
+      setTimeout(() => {
+        if (run === decodeRunId && textEl) textEl.textContent = finalText.slice(0,committedPos);
+      }, DECODE_CFG.scrambleMs);
       pos++;
     }, interval);
-  }, DECODE_CFG.startDelayMs);
+  }, 5000);
 }
 
- 
 /* ═══════════════════════════════════════════════════
    REFS
 ═══════════════════════════════════════════════════ */
@@ -1303,20 +1301,6 @@ const dbCircleEl  = document.getElementById('dbCircle');
 const dbTxtEl     = document.getElementById('db-txt');
 const audioFlash  = document.getElementById('audioFlash');
 const camLockMask = document.getElementById('camLockMask');
-const appEl       = document.querySelector('.app');
-
-function triggerHudAlert(type) {
-  if (!appEl || !type) return;
-  appEl.classList.remove('alert-red', 'alert-orange');
-  // O alerta permanece ativo até que outro áudio seja acionado.
-  void appEl.offsetWidth;
-  appEl.classList.add(type === 'red' ? 'alert-red' : 'alert-orange');
-}
-
-function clearHudAlert() {
-  if (!appEl) return;
-  appEl.classList.remove('alert-red', 'alert-orange');
-}
  
 /* ═══════════════════════════════════════════════════
    STATE
@@ -1343,7 +1327,7 @@ let lastDomFlush   = 0;
 // audio
 let audioIndex     = 0;
 const AUDIO_INFO = {
-  0: { title:'APRESENTAÇÃO', desc:'SISTEMA DE APRESENTAÇÃO // NOSTROMO // MOTHER ONLINE.', narrative:'APRESENTAÇÃO PRONTA // AGUARDANDO O PRIMEIRO ÁUDIO' },
+  0: { title:'APRESENTAÇÃO', desc:'SISTEMA EM ESPERA. MOSTRE A MÃO ABERTA PARA INICIAR A SEQUÊNCIA.', narrative:'MOTHER // AGUARDANDO INÍCIO DA APRESENTAÇÃO' },
   1: { title:'FALHA DE CONTENÇÃO', desc:'FALHA NO COMPARTIMENTO DE CARGA. A PRIORIDADE DA MOTHER MUDA PARA A PRESERVAÇÃO DOS ESPÉCIMES.', narrative:'MOTHER // VIOLAÇÃO DE CONTENÇÃO CONFIRMADA' },
   2: { title:'ANOMALIA BIOLÓGICA', desc:'ESCANEAMENTO EM CURSO. ANORMALIDADE NA FIAÇÃO. RISCO BIOLÓGICO DETECTADO.', narrative:'MOTHER // RISCO BIOLÓGICO CONFIRMADO' },
   3: { title:'PROTOCOLO 67', desc:'TRIPULANTE NEUTRALIZADO. A AMOSTRA LV-426 ESCAPOU. DALLAS É DESPERTADO.', narrative:'MOTHER // PROTOCOLO 67 ATIVO' },
@@ -1366,26 +1350,12 @@ let currentAudio = 1;
 let currentLevel = 1;
 let playing = false;
 
+// histórico para o gesto CANCELAR: volta para a faixa/narrativa anterior
+let activeAudioIndex = 0;
+let previousAudioIndex = 0;
+
 // single global audio player (prevents memory bloat)
 const player = new Audio();
-// Ganho extra apenas para os áudios principais 02–04.
-let audioCtx = null;
-let audioGain = null;
-function setMainAudioGain(audioNumber) {
-  try {
-    if (!audioCtx) {
-      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-      const source = audioCtx.createMediaElementSource(player);
-      audioGain = audioCtx.createGain();
-      source.connect(audioGain);
-      audioGain.connect(audioCtx.destination);
-    }
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-    audioGain.gain.value = audioNumber >= 2 ? 1.4 : 1.0;
-  } catch (e) {
-    // Se Web Audio não estiver disponível, o player continua normalmente.
-  }
-}
  
 /* ═══════════════════════════════════════════════════
    SESSÃO ID
@@ -1512,11 +1482,18 @@ function setDbRing(progress /* 0–1 */) {
 /* ═══════════════════════════════════════════════════
    AUDIO PANEL STATE
 ═══════════════════════════════════════════════════ */
-function updateAudDisplay() {
+function updateAudDisplay(showNarrative = true) {
   audNumEl.innerText  = pad(audioIndex);
   audNameEl.innerText = AUDIO_INFO[audioIndex]?.title || `AUDIO ${pad(audioIndex)}`;
   if (audDescEl) audDescEl.innerText = AUDIO_INFO[audioIndex]?.desc || '';
-  if (audNarrativeEl) audNarrativeEl.innerText = AUDIO_INFO[audioIndex]?.narrative || ''; 
+  // Ao iniciar uma faixa nova, o texto fica vazio até o typewriter começar.
+  // Isso evita o texto aparecer instantaneamente e depois repetir.
+  if (audNarrativeEl && showNarrative) {
+    audNarrativeEl.classList.remove('decode-live');
+    audNarrativeEl.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
+    const textEl = audNarrativeEl.querySelector('.decode-text');
+    if (textEl) textEl.textContent = AUDIO_INFO[audioIndex]?.narrative?.replace(/^MOTHER \/\/\s*/, '') || '';
+  }
 }
  
 function setAudPanelState(state /* 'locked'|'idle'|'playing' */) {
@@ -1543,31 +1520,60 @@ function setAudPanelState(state /* 'locked'|'idle'|'playing' */) {
 /* ═══════════════════════════════════════════════════
    AUDIO PLAYER
 ═══════════════════════════════════════════════════ */
+let audioGain = null;
+let audioCtx = null;
+
+// Não roteamos o elemento por Web Audio: isso pode interferir na reprodução
+// dependendo do navegador/dispositivo. O volume do player é controlado diretamente.
+function ensureAudioGain(){
+  player.muted = false;
+  player.volume = 1.0;
+}
+
 player.onended = () => {
+  clearInterval(progressTimer);
+  audFillEl.style.width = '100%';
+  playing = false;
   lockState = 'unlocked';
+  activeAudioIndex = 0;
   setAudPanelState('idle');
-  addLog('ÁUDIO FINALIZADO — SEQUENCIADOR PRONTO');
+  setTxt('aud-state', 'CONCLUÍDO');
+  addLog('ÁUDIO FINALIZADO — AGUARDANDO NOVA MÃO ABERTA');
+  // NÃO muda audioIndex e NÃO reescreve o texto.
 };
+
 player.onerror = () => {
+  clearInterval(progressTimer);
+  playing = false;
   lockState = 'unlocked';
+  activeAudioIndex = 0;
   setAudPanelState('idle');
   addLog('ERRO DE ÁUDIO — VERIFIQUE O CAMINHO DO ARQUIVO');
 };
- 
+
 function playNextAudio() {
+  const playedAudioIndex = audioIndex;
+  if (playedAudioIndex < 1 || playedAudioIndex > CFG.totalAudios) return;
+
+  // Guarda a faixa anterior antes de trocar a ativa.
+  previousAudioIndex = playedAudioIndex > 1 ? playedAudioIndex - 1 : 0;
+  activeAudioIndex = playedAudioIndex;
+
+  document.body.classList.remove('alarm-red','alarm-orange');
+  if (playedAudioIndex === 1) document.body.classList.add('alarm-red');
+  if (playedAudioIndex === 4) document.body.classList.add('alarm-orange');
+
   if (!player.paused) { player.pause(); player.currentTime = 0; }
 
-  // O estado 00 é apenas a tela inicial. O primeiro gesto dispara o ÁUDIO 01.
-  // Depois do 04, a sequência volta diretamente para o 01 (sem passar pelo 00).
-  const playedAudioIndex = audioIndex === 0 ? 1 : (audioIndex >= CFG.totalAudios ? 1 : audioIndex + 1);
-  const path = `${CFG.pastaSons}${playedAudioIndex}${CFG.extensao}`;
   lockState = 'playing';
   playing = true;
   audiosPlayed++;
   setAudPanelState('playing');
   setTxt('r-audio', audiosPlayed);
 
+  const path = new URL(`${CFG.pastaSons}${playedAudioIndex}${CFG.extensao}`, document.baseURI).href;
   addLog(`ÁUDIO ENVIADO: ${path}`);
+
   const directiveEl = document.getElementById('directive');
   const crewEl = document.getElementById('crew-state');
   const hazardEl = document.getElementById('hazard-state');
@@ -1576,49 +1582,87 @@ function playNextAudio() {
   if (crewEl) crewEl.innerText = playedAudioIndex >= 3 ? 'COMPROMETIDA' : (playedAudioIndex === 2 ? 'ALERTA' : 'NORMAL');
   if (hazardEl) hazardEl.innerText = threat;
 
-  // O alerta acompanha o áudio atual até o próximo áudio ser ativado.
-  if (playedAudioIndex === 1) triggerHudAlert('red');
-  else if (playedAudioIndex === 4) triggerHudAlert('orange');
-  else clearHudAlert();
-
   audioFlash.classList.add('pop');
   setTimeout(() => audioFlash.classList.remove('pop'), 180);
 
-  // O painel fica no áudio que realmente está tocando. Só avança quando terminar.
-  audioIndex = playedAudioIndex;
-  updateAudDisplay();
-  player.src = path;
-  setMainAudioGain(playedAudioIndex);
-  player.play().then(() => {
-    startDecodeText(playedAudioIndex);
-    clearInterval(progressTimer);
-    progressTimer = setInterval(() => {
-      if (player.duration) audFillEl.style.width = (player.currentTime / player.duration * 100) + '%';
-    }, 80);
-  }).catch(err => {
-    console.warn('Áudio bloqueado:', err);
-    stopDecodeText();
-    lockState = 'unlocked'; playing = false;
-    setAudPanelState('idle');
-    addLog('ÁUDIO BLOQUEADO — CLIQUE NA PÁGINA PRIMEIRO');
-  });
+  updateAudDisplay(false);
+  // Limpa o texto imediatamente. O typewriter será iniciado somente depois
+  // que o áudio realmente começar a tocar.
+  stopDecodeText();
+  if (audNarrativeEl) {
+    audNarrativeEl.classList.remove('decode-live');
+    audNarrativeEl.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
+  }
 
-  player.onended = () => {
-    stopDecodeText();
-    clearInterval(progressTimer);
-    audFillEl.style.width = '100%';
-    playing = false;
-    lockState = 'unlocked';
-    setAudPanelState('idle');
-    setTxt('aud-state', 'CONCLUÍDO');
-    addLog('ÁUDIO FINALIZADO — AGUARDANDO NOVA MÃO ABERTA');
-    // Mantém o texto do áudio atual na HUD. A próxima faixa só aparece
-    // quando uma nova mão aberta for detectada.
-    audioIndex = playedAudioIndex;
-    updateAudDisplay();
-  };
+  player.src = path;
+  player.load();
+
+  (async () => {
+    try {
+      // O play() precisa permanecer diretamente ligado ao gesto do usuário.
+      // Não aguardamos AudioContext.resume() antes dele, pois isso pode fazer
+      // o navegador perder a user activation e bloquear o áudio.
+      ensureAudioGain();
+      const playPromise = player.play();
+      if (playPromise && typeof playPromise.then === 'function') await playPromise;
+      // O áudio já está efetivamente em reprodução aqui. Só então iniciamos
+      // o contador de 5 s do typewriter.
+      startDecodeText(playedAudioIndex);
+      clearInterval(progressTimer);
+      progressTimer = setInterval(() => {
+        if (player.duration) audFillEl.style.width = (player.currentTime / player.duration * 100) + '%';
+      }, 80);
+    } catch(err) {
+      console.warn('Áudio não reproduzido:', err);
+      stopDecodeText();
+      playing = false;
+      lockState = 'unlocked';
+      setAudPanelState('idle');
+      addLog('ÁUDIO NÃO REPRODUZIDO: ' + err.message);
+    }
+  })();
 
   send(String(playedAudioIndex));
+}
+
+/* ═══════════════════════════════════════════════════
+   GESTO CANCELAR — POLEGAR PARA BAIXO
+═══════════════════════════════════════════════════ */
+function cancelCurrentAudio(){
+  if (!playing && !activeAudioIndex) return;
+
+  const cancelled = activeAudioIndex;
+  const restore = previousAudioIndex || 0;
+
+  stopDecodeText();
+
+  clearInterval(progressTimer);
+  progressTimer = null;
+  player.pause();
+  player.currentTime = 0;
+  audFillEl.style.width = '0%';
+
+  playing = false;
+  lockState = 'unlocked';
+  activeAudioIndex = 0;
+  audioIndex = restore;
+
+  document.body.classList.remove('alarm-red','alarm-orange');
+  updateAudDisplay();
+
+  // Restaura imediatamente a narrativa anterior.
+  if (audNarrativeEl && AUDIO_INFO[restore]) {
+    audNarrativeEl.classList.remove('decode-live');
+    audNarrativeEl.innerHTML =
+      '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
+    audNarrativeEl.querySelector('.decode-text').textContent =
+      AUDIO_INFO[restore].narrative.replace(/^MOTHER \/\/\s*/,'');
+  }
+
+  setAudPanelState('idle');
+  setTxt('aud-state', 'CANCELADO');
+  addLog(`ÁUDIO ${pad(cancelled)} CANCELADO — RETORNANDO AO ÁUDIO ${pad(restore)}`);
+  pushHistory('CANCELAR');
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1883,13 +1927,13 @@ function onResults(res) {
     const [bx,by] = toScreen(lm[b]);
     camCtx.moveTo(ax, ay); camCtx.lineTo(bx, by);
   });
-  camCtx.strokeStyle = 'rgba(120,255,90,.95)'; camCtx.lineWidth = 2.6; camCtx.shadowColor = 'rgba(120,255,90,.75)'; camCtx.shadowBlur = 7; camCtx.stroke(); camCtx.shadowBlur = 0;
+  camCtx.strokeStyle = 'rgba(57,255,136,.95)'; camCtx.lineWidth = 2.8; camCtx.shadowColor = 'rgba(57,255,136,.55)'; camCtx.shadowBlur = 6; camCtx.stroke(); camCtx.shadowBlur = 0;
  
   // key landmarks
   [0,4,8,12,16,20,5,9,13,17].forEach(i => {
     const [px,py] = toScreen(lm[i]);
     camCtx.beginPath(); camCtx.arc(px, py, i===0 ? 5 : 3.5, 0, Math.PI*2);
-    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.95)' : 'rgba(120,255,90,.98)';
+    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.95)' : 'rgba(57,255,136,.95)';
     camCtx.fill();
   });
  
@@ -1945,6 +1989,15 @@ const ampMap = {
 waveTarget = ampMap[gesture] || 8;
  
   /* ═══════════════════════════════════════════
+     GESTO CANCELAR
+     POLEGAR PARA BAIXO = cancela o áudio atual e restaura o anterior.
+     PEACE fica reservado para o HIPERSONO.
+  ═══════════════════════════════════════════ */
+  if (gesture === 'POLEGAR DOWN' && prevGesture !== 'POLEGAR DOWN' && lockState !== 'boot') {
+    cancelCurrentAudio();
+  }
+
+  /* ═══════════════════════════════════════════
      3-STATE LOCK LOGIC
   ═══════════════════════════════════════════ */
  
@@ -1969,95 +2022,39 @@ waveTarget = ampMap[gesture] || 8;
     }
   }
  
-  /* STATE: unlocked — fire audio on confirmed open hand */
-/* STATE: unlocked OR playing — fire/interrupt audio on confirmed open hand */
+  /* STATE: unlocked — each NEW open hand activates exactly one next audio.
+   Audio ending never advances the sequence. */
   else if (lockState === 'unlocked' || lockState === 'playing') {
     if (gesture === 'OPEN HAND') {
       if (!handWasOpen && openHandStartTime === 0) openHandStartTime = now;
- 
       const progress = Math.min(1, (now - openHandStartTime) / CFG.debounceMs);
       setDbRing(progress);
- 
+
       if (!handWasOpen && (now - openHandStartTime >= CFG.debounceMs)) {
         handWasOpen = true;
         dbTxtEl.innerText = 'ENVIANDO…';
+        if (lockState === 'playing') addLog('NOVA MÃO ABERTA — MUDANDO DE FAIXA');
 
-        if (lockState === 'playing') {
-            addLog('ÁUDIO INTERROMPIDO — MUDANDO DE FAIXA');
-        }
-        
+        audioIndex = audioIndex >= CFG.totalAudios ? 1 : audioIndex + 1;
         playNextAudio();
         pushHistory('OPEN HAND');
       } else if (!handWasOpen) {
         dbTxtEl.innerText = 'ESTABILIZANDO…';
       }
     } else {
-      /* closed / changed — reset debounce */
       handWasOpen = false;
       openHandStartTime = 0;
       setDbRing(1);
       dbTxtEl.innerText = lockState === 'playing' ? 'REPRODUZINDO...' : 'PRONTO — MÃO ABERTA PARA REPRODUZIR';
     }
- 
-    /* ROCK / PEACE funcionam apenas se o áudio não estiver tocando */
-   if (lockState !== 'playing') {
+  }
 
-    if (gesture === 'ROCK' && !rockCool) {
-        rockCool = true;
-
-        player.pause();
-        player.currentTime = 0;
-        player.src = 'Sounds/arma.mp3';
-        setMainAudioGain(1);
-        player.play();
-
-        addLog('GESTO: ROCK — ARMA');
-
-        setTimeout(() => {
-            rockCool = false;
-        }, 3000);
-    }
-
-    else if (gesture === 'PEACE' && !peaceCool) {
-        peaceCool = true;
-
-        player.pause();
-        player.currentTime = 0;
-        player.src = 'Sounds/hipersono.mp3';
-        setMainAudioGain(1);
-        player.play();
-
-        addLog('GESTO: PEACE — HIPERSONO');
-
-        setTimeout(() => {
-            peaceCool = false;
-        }, 3000);
-    }
-
-    else if (gesture === 'POLEGAR DOWN' && !thumbCool) {
-        thumbCool = true;
-
-        player.pause();
-        player.currentTime = 0;
-        player.src = 'Sounds/explosao.mp3';
-        setMainAudioGain(1);
-        player.play();
-
-        addLog('GESTO: POLEGAR DOWN — EXPLOSAO');
-
-        setTimeout(() => {
-            thumbCool = false;
-        }, 3000);
-    }
-} // fecha if(lockState !== 'playing')
-
-} // fecha else if(lockState === 'unlocked' || lockState === 'playing')
   /* STATE: playing — all gestures ignored, just display */
   // (nothing to trigger — player.onended resets to 'unlocked')
  
   /* gesture history on change (only post-unlock) */
   if (lockState !== 'boot' && gesture !== prevGesture && gesture !== 'TRACKING') {
-    if (gesture !== 'OPEN HAND') pushHistory(gesture); // open hand already pushed above
+    if (gesture !== 'OPEN HAND' && gesture !== 'POLEGAR DOWN') pushHistory(gesture);
   }
   prevGesture = gesture;
  
@@ -2074,7 +2071,7 @@ waveTarget = ampMap[gesture] || 8;
 }
  
 /* ═══════════════════════════════════════════════════
-   VIDEO OVERLAY (PEACE gesture)
+   VIDEO OVERLAY (gestos)
 ═══════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════
@@ -2110,5 +2107,6 @@ function domBatch(gesture, lm, fpsVal) {
 updateAudDisplay();
 setAudPanelState('locked');
 </script>
+
 </body>
 </html>
