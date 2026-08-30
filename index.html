@@ -387,12 +387,12 @@ canvas#cam {
 .app.alert-red::after {
   background:rgba(255,30,55,.20);
   box-shadow:inset 0 0 0 5px rgba(255,30,55,.65), inset 0 0 80px rgba(255,30,55,.35);
-  animation:hudAlertRed .14s steps(1,end) 7;
+  animation:hudAlertRed .28s steps(1,end) infinite;
 }
 .app.alert-orange::after {
   background:rgba(255,125,20,.20);
   box-shadow:inset 0 0 0 5px rgba(255,125,20,.65), inset 0 0 80px rgba(255,125,20,.35);
-  animation:hudAlertOrange .14s steps(1,end) 7;
+  animation:hudAlertOrange .28s steps(1,end) infinite;
 }
 @keyframes hudAlertRed {
   0%,49% { opacity:1; }
@@ -1308,12 +1308,14 @@ const appEl       = document.querySelector('.app');
 function triggerHudAlert(type) {
   if (!appEl || !type) return;
   appEl.classList.remove('alert-red', 'alert-orange');
-  // Força a animação a reiniciar mesmo quando dois alertas ocorrem em sequência.
+  // O alerta permanece ativo até que outro áudio seja acionado.
   void appEl.offsetWidth;
   appEl.classList.add(type === 'red' ? 'alert-red' : 'alert-orange');
-  setTimeout(() => {
-    appEl.classList.remove('alert-red', 'alert-orange');
-  }, 1050);
+}
+
+function clearHudAlert() {
+  if (!appEl) return;
+  appEl.classList.remove('alert-red', 'alert-orange');
 }
  
 /* ═══════════════════════════════════════════════════
@@ -1366,6 +1368,24 @@ let playing = false;
 
 // single global audio player (prevents memory bloat)
 const player = new Audio();
+// Ganho extra apenas para os áudios principais 02–04.
+let audioCtx = null;
+let audioGain = null;
+function setMainAudioGain(audioNumber) {
+  try {
+    if (!audioCtx) {
+      audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const source = audioCtx.createMediaElementSource(player);
+      audioGain = audioCtx.createGain();
+      source.connect(audioGain);
+      audioGain.connect(audioCtx.destination);
+    }
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+    audioGain.gain.value = audioNumber >= 2 ? 1.4 : 1.0;
+  } catch (e) {
+    // Se Web Audio não estiver disponível, o player continua normalmente.
+  }
+}
  
 /* ═══════════════════════════════════════════════════
    SESSÃO ID
@@ -1539,7 +1559,7 @@ function playNextAudio() {
 
   // O estado 00 é apenas a tela inicial. O primeiro gesto dispara o ÁUDIO 01.
   // Depois do 04, a sequência volta diretamente para o 01 (sem passar pelo 00).
-  const playedAudioIndex = audioIndex === 0 ? 1 : audioIndex;
+  const playedAudioIndex = audioIndex === 0 ? 1 : (audioIndex >= CFG.totalAudios ? 1 : audioIndex + 1);
   const path = `${CFG.pastaSons}${playedAudioIndex}${CFG.extensao}`;
   lockState = 'playing';
   playing = true;
@@ -1556,9 +1576,10 @@ function playNextAudio() {
   if (crewEl) crewEl.innerText = playedAudioIndex >= 3 ? 'COMPROMETIDA' : (playedAudioIndex === 2 ? 'ALERTA' : 'NORMAL');
   if (hazardEl) hazardEl.innerText = threat;
 
-  // ÁUDIO 01 = alerta crítico (vermelho). ÁUDIO 04 = alerta de ruptura (laranja).
+  // O alerta acompanha o áudio atual até o próximo áudio ser ativado.
   if (playedAudioIndex === 1) triggerHudAlert('red');
-  if (playedAudioIndex === 4) triggerHudAlert('orange');
+  else if (playedAudioIndex === 4) triggerHudAlert('orange');
+  else clearHudAlert();
 
   audioFlash.classList.add('pop');
   setTimeout(() => audioFlash.classList.remove('pop'), 180);
@@ -1567,6 +1588,7 @@ function playNextAudio() {
   audioIndex = playedAudioIndex;
   updateAudDisplay();
   player.src = path;
+  setMainAudioGain(playedAudioIndex);
   player.play().then(() => {
     startDecodeText(playedAudioIndex);
     clearInterval(progressTimer);
@@ -1589,8 +1611,10 @@ function playNextAudio() {
     lockState = 'unlocked';
     setAudPanelState('idle');
     setTxt('aud-state', 'CONCLUÍDO');
-    addLog('ÁUDIO FINALIZADO — SEQUENCIADOR PRONTO');
-    audioIndex = (playedAudioIndex % CFG.totalAudios) + 1;
+    addLog('ÁUDIO FINALIZADO — AGUARDANDO NOVA MÃO ABERTA');
+    // Mantém o texto do áudio atual na HUD. A próxima faixa só aparece
+    // quando uma nova mão aberta for detectada.
+    audioIndex = playedAudioIndex;
     updateAudDisplay();
   };
 
@@ -1859,13 +1883,13 @@ function onResults(res) {
     const [bx,by] = toScreen(lm[b]);
     camCtx.moveTo(ax, ay); camCtx.lineTo(bx, by);
   });
-  camCtx.strokeStyle = 'rgba(105,135,48,.65)'; camCtx.lineWidth = 1.8; camCtx.stroke();
+  camCtx.strokeStyle = 'rgba(120,255,90,.95)'; camCtx.lineWidth = 2.6; camCtx.shadowColor = 'rgba(120,255,90,.75)'; camCtx.shadowBlur = 7; camCtx.stroke(); camCtx.shadowBlur = 0;
  
   // key landmarks
   [0,4,8,12,16,20,5,9,13,17].forEach(i => {
     const [px,py] = toScreen(lm[i]);
     camCtx.beginPath(); camCtx.arc(px, py, i===0 ? 5 : 3.5, 0, Math.PI*2);
-    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.9)' : 'rgba(105,135,48,.85)';
+    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.95)' : 'rgba(120,255,90,.98)';
     camCtx.fill();
   });
  
@@ -1984,6 +2008,7 @@ waveTarget = ampMap[gesture] || 8;
         player.pause();
         player.currentTime = 0;
         player.src = 'Sounds/arma.mp3';
+        setMainAudioGain(1);
         player.play();
 
         addLog('GESTO: ROCK — ARMA');
@@ -1999,6 +2024,7 @@ waveTarget = ampMap[gesture] || 8;
         player.pause();
         player.currentTime = 0;
         player.src = 'Sounds/hipersono.mp3';
+        setMainAudioGain(1);
         player.play();
 
         addLog('GESTO: PEACE — HIPERSONO');
@@ -2014,6 +2040,7 @@ waveTarget = ampMap[gesture] || 8;
         player.pause();
         player.currentTime = 0;
         player.src = 'Sounds/explosao.mp3';
+        setMainAudioGain(1);
         player.play();
 
         addLog('GESTO: POLEGAR DOWN — EXPLOSAO');
