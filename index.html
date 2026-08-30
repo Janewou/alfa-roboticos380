@@ -378,6 +378,30 @@ canvas#cam {
  
 /* HUD overlay */
 .hud { position:absolute; inset:0; pointer-events:none; z-index:5; }
+
+/* Alertas de áudio — piscam sobre a HUD inteira */
+.app::after {
+  content:""; position:fixed; inset:0; pointer-events:none; z-index:999;
+  opacity:0;
+}
+.app.alert-red::after {
+  background:rgba(255,30,55,.20);
+  box-shadow:inset 0 0 0 5px rgba(255,30,55,.65), inset 0 0 80px rgba(255,30,55,.35);
+  animation:hudAlertRed .14s steps(1,end) 7;
+}
+.app.alert-orange::after {
+  background:rgba(255,125,20,.20);
+  box-shadow:inset 0 0 0 5px rgba(255,125,20,.65), inset 0 0 80px rgba(255,125,20,.35);
+  animation:hudAlertOrange .14s steps(1,end) 7;
+}
+@keyframes hudAlertRed {
+  0%,49% { opacity:1; }
+  50%,100% { opacity:0; }
+}
+@keyframes hudAlertOrange {
+  0%,49% { opacity:1; }
+  50%,100% { opacity:0; }
+}
 .corner { position:absolute; width:44px; height:44px; border-color:var(--g); border-style:solid; opacity:.5; }
 .corner::before { content:""; position:absolute; width:4px; height:4px; border-radius:50%;
   background:var(--g); box-shadow:0 0 5px var(--g); }
@@ -947,12 +971,12 @@ canvas#wave{height:38px !important;}
  
       <div class="label">SEQUÊNCIA DE ÁUDIO</div>
       <div class="aud-track">
-        <div id="aud-num" class="aud-num">01</div>
+        <div id="aud-num" class="aud-num">00</div>
         <div class="aud-info">
-          <div class="aud-name" id="aud-name">ÁUDIO 01</div>
-          <div class="aud-desc" id="aud-desc">FALHA DE CONTENÇÃO — MOTHER REDEFINE A PRIORIDADE DA MISSÃO.</div>
+          <div class="aud-name" id="aud-name">APRESENTAÇÃO</div>
+          <div class="aud-desc" id="aud-desc">SISTEMA DE APRESENTAÇÃO // NOSTROMO // MOTHER ONLINE.</div>
           <div class="aud-state" id="aud-state">AGUARDANDO</div>
-          <div class="aud-narrative" id="aud-narrative">SISTEMA PRONTO // AGUARDANDO AUTORIZAÇÃO</div>
+          <div class="aud-narrative" id="aud-narrative">APRESENTAÇÃO PRONTA // AGUARDANDO O PRIMEIRO ÁUDIO</div>
         </div>
       </div>
       <div class="aud-bar">
@@ -1279,6 +1303,18 @@ const dbCircleEl  = document.getElementById('dbCircle');
 const dbTxtEl     = document.getElementById('db-txt');
 const audioFlash  = document.getElementById('audioFlash');
 const camLockMask = document.getElementById('camLockMask');
+const appEl       = document.querySelector('.app');
+
+function triggerHudAlert(type) {
+  if (!appEl || !type) return;
+  appEl.classList.remove('alert-red', 'alert-orange');
+  // Força a animação a reiniciar mesmo quando dois alertas ocorrem em sequência.
+  void appEl.offsetWidth;
+  appEl.classList.add(type === 'red' ? 'alert-red' : 'alert-orange');
+  setTimeout(() => {
+    appEl.classList.remove('alert-red', 'alert-orange');
+  }, 1050);
+}
  
 /* ═══════════════════════════════════════════════════
    STATE
@@ -1303,8 +1339,9 @@ let fpsHistory     = new Array(60).fill(30);
 let lastDomFlush   = 0;
  
 // audio
-let audioIndex     = 1;
+let audioIndex     = 0;
 const AUDIO_INFO = {
+  0: { title:'APRESENTAÇÃO', desc:'SISTEMA DE APRESENTAÇÃO // NOSTROMO // MOTHER ONLINE.', narrative:'APRESENTAÇÃO PRONTA // AGUARDANDO O PRIMEIRO ÁUDIO' },
   1: { title:'FALHA DE CONTENÇÃO', desc:'FALHA NO COMPARTIMENTO DE CARGA. A PRIORIDADE DA MOTHER MUDA PARA A PRESERVAÇÃO DOS ESPÉCIMES.', narrative:'MOTHER // VIOLAÇÃO DE CONTENÇÃO CONFIRMADA' },
   2: { title:'ANOMALIA BIOLÓGICA', desc:'ESCANEAMENTO EM CURSO. ANORMALIDADE NA FIAÇÃO. RISCO BIOLÓGICO DETECTADO.', narrative:'MOTHER // RISCO BIOLÓGICO CONFIRMADO' },
   3: { title:'PROTOCOLO 67', desc:'TRIPULANTE NEUTRALIZADO. A AMOSTRA LV-426 ESCAPOU. DALLAS É DESPERTADO.', narrative:'MOTHER // PROTOCOLO 67 ATIVO' },
@@ -1500,7 +1537,9 @@ player.onerror = () => {
 function playNextAudio() {
   if (!player.paused) { player.pause(); player.currentTime = 0; }
 
-  const playedAudioIndex = audioIndex;
+  // O estado 00 é apenas a tela inicial. O primeiro gesto dispara o ÁUDIO 01.
+  // Depois do 04, a sequência volta diretamente para o 01 (sem passar pelo 00).
+  const playedAudioIndex = audioIndex === 0 ? 1 : audioIndex;
   const path = `${CFG.pastaSons}${playedAudioIndex}${CFG.extensao}`;
   lockState = 'playing';
   playing = true;
@@ -1516,6 +1555,10 @@ function playNextAudio() {
   if (directiveEl) directiveEl.innerText = playedAudioIndex >= 3 ? 'PRESERVAR ESPÉCIME' : 'CONTER';
   if (crewEl) crewEl.innerText = playedAudioIndex >= 3 ? 'COMPROMETIDA' : (playedAudioIndex === 2 ? 'ALERTA' : 'NORMAL');
   if (hazardEl) hazardEl.innerText = threat;
+
+  // ÁUDIO 01 = alerta crítico (vermelho). ÁUDIO 04 = alerta de ruptura (laranja).
+  if (playedAudioIndex === 1) triggerHudAlert('red');
+  if (playedAudioIndex === 4) triggerHudAlert('orange');
 
   audioFlash.classList.add('pop');
   setTimeout(() => audioFlash.classList.remove('pop'), 180);
