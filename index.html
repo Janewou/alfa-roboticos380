@@ -1217,7 +1217,9 @@ const CFG = {
   totalAudios : 4,
   pastaSons   : 'Sounds/',
   extensao    : '.mp3',
-  debounceMs  : 150,   // ms de mão aberta contínua para confirmar gesto
+  debounceMs  : 180,   // ms de mão aberta contínua para confirmar gesto
+  gestureStableFrames: 4, // quadros consecutivos para confirmar gestos secundários
+  gestureHoldMs: 140,     // evita troca instantânea por ruído
 };
 
 /* ═══════════════════════════════════════════════════
@@ -1345,6 +1347,11 @@ let rockCool  = false;
 let peaceCool = false;
 let thumbCool = false;
 let prevGesture = '';
+let rawGesture = 'TRACKING';
+let stableGesture = 'TRACKING';
+let gestureCandidate = 'TRACKING';
+let gestureCandidateFrames = 0;
+let gestureCandidateSince = 0;
 
 let currentAudio = 1;
 let currentLevel = 1;
@@ -1937,6 +1944,9 @@ function onResults(res) {
     setGestureIcon('');
     handWasOpen     = false;
     openHandStartTime = 0;
+    gestureCandidate = 'TRACKING';
+    gestureCandidateFrames = 0;
+    stableGesture = 'TRACKING';
     domBatch(null, null, null);
     return;
   }
@@ -1978,31 +1988,39 @@ function onResults(res) {
   camCtx.strokeStyle = 'rgba(105,135,48,.9)'; camCtx.lineWidth = 2;
   bc(x1,y1, 1, 1); bc(x2,y1,-1, 1); bc(x1,y2, 1,-1); bc(x2,y2,-1,-1);
  
-  /* ── classify fingers ── */
-  const isUp = (t, b) => lm[t].y < lm[b].y;
-  const thumb  = lm[4].x < lm[3].x; // mirrored: left is greater x in selfie
-  const index  = isUp(8,  6);
-  const middle = isUp(12,10);
-  const ring   = isUp(16,14);
-  const pinky  = isUp(20,18);
- 
-  /* ── classify gesture ── */
-  let gesture = 'TRACKING';
-  if (index && middle && ring && pinky)                  gesture = 'OPEN HAND';
-  else if (index && !middle && !ring && pinky)           gesture = 'ROCK';
-  else if (index && middle && !ring && !pinky)           gesture = 'PEACE';
-  else if (thumb && !index && !middle && !ring && !pinky)
-  gesture = 'POLEGAR UP';
-else if (!index && !middle && !ring && !pinky && lm[4].y < lm[3].y)
-  gesture = 'CLOSED FIST';
-else if (
-  lm[4].y > lm[3].y &&
-  !index &&
-  !middle &&
-  !ring &&
-  !pinky
-)
-  gesture = 'POLEGAR DOWN';
+  /* ── classify fingers: geometria + filtro temporal ── */
+  const dist = (a,b) => Math.hypot(lm[a].x-lm[b].x, lm[a].y-lm[b].y);
+  const palm = Math.max(dist(0,9), 0.001);
+  const fingerUp = (tip,pip) =>
+    dist(tip,0) > dist(pip,0) * 1.10 && lm[tip].y < lm[pip].y - palm*0.025;
+
+  const index  = fingerUp(8,6);
+  const middle = fingerUp(12,10);
+  const ring   = fingerUp(16,14);
+  const pinky  = fingerUp(20,18);
+
+  // Polegar menos dependente de X: funciona melhor com a mão inclinada.
+  const thumbExtended = dist(4,17) > palm*0.68 && dist(4,2) > dist(3,2)*1.08;
+  const thumbUp = thumbExtended && lm[4].y < lm[3].y - palm*0.02;
+  const thumbDown = thumbExtended && lm[4].y > lm[3].y + palm*0.02;
+
+  let detectedGesture = 'TRACKING';
+  if (index && middle && ring && pinky) detectedGesture = 'OPEN HAND';
+  else if (index && !middle && !ring && pinky) detectedGesture = 'ROCK';
+  else if (index && middle && !ring && !pinky) detectedGesture = 'PEACE';
+  else if (thumbUp && !index && !middle && !ring && !pinky) detectedGesture = 'POLEGAR UP';
+  else if (thumbDown && !index && !middle && !ring && !pinky) detectedGesture = 'POLEGAR DOWN';
+  else if (!index && !middle && !ring && !pinky) detectedGesture = 'CLOSED FIST';
+
+  // Histerese: um frame ruim não troca o gesto instantaneamente.
+  rawGesture = detectedGesture;
+  if (detectedGesture === gestureCandidate) gestureCandidateFrames++;
+  else { gestureCandidate = detectedGesture; gestureCandidateFrames = 1; gestureCandidateSince = now; }
+  if (gestureCandidateFrames >= CFG.gestureStableFrames ||
+      (detectedGesture !== 'TRACKING' && now - gestureCandidateSince >= CFG.gestureHoldMs)) {
+    stableGesture = gestureCandidate;
+  }
+  const gesture = stableGesture;
 
 /* wave amplitude mapping */
 const ampMap = {
