@@ -1217,7 +1217,7 @@ const CFG = {
   totalAudios : 4,
   pastaSons   : 'Sounds/',
   extensao    : '.mp3',
-  debounceMs  : 150,   // ms de mão aberta contínua para confirmar gesto
+  debounceMs  : 175,   // ms de mão aberta contínua para confirmar gesto
 };
 
 /* ═══════════════════════════════════════════════════
@@ -1226,7 +1226,7 @@ const CFG = {
    synthesized locally and mixed very quietly so it
    remains perceptible without covering AUDIO 01–04.
 ═══════════════════════════════════════════════════ */
-const DECODE_CFG = { charsPerSecond: 24, scrambleMs: 42 };
+const DECODE_CFG = { charsPerSecond: 36, scrambleMs: 63 };
 let decodeTimer = null;
 let decodeDelayTimer = null;
 let decodeRunId = 0;
@@ -1327,11 +1327,11 @@ let lastDomFlush   = 0;
 // audio
 let audioIndex     = 0;
 const AUDIO_INFO = {
-  0: { title:'APRESENTAÇÃO', desc:'SISTEMA EM ESPERA. MOSTRE A MÃO ABERTA PARA INICIAR A SEQUÊNCIA.', narrative:'MOTHER // AGUARDANDO INÍCIO DA APRESENTAÇÃO' },
-  1: { title:'FALHA DE CONTENÇÃO', desc:'FALHA NO COMPARTIMENTO DE CARGA. A PRIORIDADE DA MOTHER MUDA PARA A PRESERVAÇÃO DOS ESPÉCIMES.', narrative:'MOTHER // VIOLAÇÃO DE CONTENÇÃO CONFIRMADA' },
-  2: { title:'ANOMALIA BIOLÓGICA', desc:'ESCANEAMENTO EM CURSO. ANORMALIDADE NA FIAÇÃO. RISCO BIOLÓGICO DETECTADO.', narrative:'MOTHER // RISCO BIOLÓGICO CONFIRMADO' },
-  3: { title:'PROTOCOLO 67', desc:'TRIPULANTE NEUTRALIZADO. A AMOSTRA LV-426 ESCAPOU. DALLAS É DESPERTADO.', narrative:'MOTHER // PROTOCOLO 67 ATIVO' },
-  4: { title:'RUPTURA DA FUSELAGEM', desc:'FUSELAGEM COMPROMETIDA. A CONTENÇÃO É PERDIDA E AS AMOSTRAS SÃO EXPOSTAS AO VÁCUO.', narrative:'MOTHER // PERDA DE CONTENÇÃO' }
+  0: { title:'PAINEL DE CONTROLE', desc:'Status atual', narrative:'200 ANOS PARA O RETORNO AO PLANETA TERRA; ANDROIDE DAVID 8 NO COMANDO; ESPÉCIMES DO PLANETA LV-426 NO COMPARTIMENTO DE CARGA PARA ANÁLISE ESPECIALIZADA' },
+  1: { title:'FALHA DE CONTENÇÃO', desc:'ALERTA!', narrative:'MOTHER // FALHA NO COMPARTIMENTO DE CARGA, PROTEJA A INTEGRIDADE DOS ESPÉCIMES' },
+  2: { title:'ANOMALIA BIOLÓGICA', desc:'IDENTIFICANDO CAUSA', narrative:'MOTHER // CONFIDENCIALIDADE NÍVEL ÔMEGA (RESTRITA A DAVID 8) - DIRETRIZ 937 // <p>PRIORIDADE UM: GARANTIR O RETORNO DO ORGANISMO PARA ANÁLISE.</p> <p>TODAS AS OUTRAS CONSIDERAÇÕES SÃO SECUNDÁRIAS.</p> <p>TRIPULAÇÃO DESCARTÁVEL</p> ' },
+  3: { title:'ESCANEAMENTO EM CURSO', desc:'ANORMALIDADE DETECTADA!', narrative:'MOTHER // ANORMALIDADE DETECTADA NA FIAÇÃO, RISCO BIOLÓGICO DETECTADO, NOVA DIRETRIZ, PRESERVAR OS ESPÉCIMES' },
+  4: { title:'PROTOCOLO 67', desc:'TRIPULANTE NEUTRALIZADO', narrative:'MOTHER // TRIPULANTE PARKER M. NEUTRALIZADO // DAVID 8, TOMAR DECISÃO DE ACORDO COM CÓDIGO WEYLAND-YUTANI DE CONDUTA (LEMBRE-SE DA DIRETRIZ 937)' }
 };
 let audiosPlayed   = 0;
 let progressTimer  = null;
@@ -2107,7 +2107,7 @@ waveTarget = ampMap[gesture] || 8;
  
 /* ═══════════════════════════════════════════════════
    VIDEO OVERLAY (gestos)
-═══════════════════════════════════════════════════ */
+═════════════════════════════════════════════════ */
 
 /* ═══════════════════════════════════════════════════
    THROTTLED DOM BATCH (~10 fps writes)
