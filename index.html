@@ -1356,6 +1356,11 @@ let previousAudioIndex = 0;
 
 // single global audio player (prevents memory bloat)
 const player = new Audio();
+const secondaryPlayer = new Audio();
+secondaryPlayer.preload = 'auto';
+secondaryPlayer.volume = 1.0;
+let secondaryLastGesture = '';
+let secondaryBusy = false;
  
 /* ═══════════════════════════════════════════════════
    SESSÃO ID
@@ -1433,7 +1438,8 @@ const GI_IDS = {
   'ROCK':'gi-rock',
   'PEACE':'gi-peace',
   'POLEGAR UP':'gi-thumb',
-  'POLEGAR DOWN':'gi-thumb'
+  'POLEGAR DOWN':'gi-thumb',
+  'CLOSED FIST':'gi-thumb'
 };
 let lastGI = null;
 function setGestureIcon(name) {
@@ -1550,6 +1556,27 @@ player.onerror = () => {
   setAudPanelState('idle');
   addLog('ERRO DE ÁUDIO — VERIFIQUE O CAMINHO DO ARQUIVO');
 };
+
+function playSecondarySound(gesture){
+  const files = {
+    'PEACE': 'hipersono.mp3',
+    'ROCK': 'arma.mp3',
+    'POLEGAR DOWN': 'explosao.mp3'
+  };
+  const file = files[gesture];
+  if (!file) return;
+  const path = new URL(`${CFG.pastaSons}${file}`, document.baseURI).href;
+  try {
+    secondaryPlayer.pause();
+    secondaryPlayer.currentTime = 0;
+    secondaryPlayer.src = path;
+    secondaryPlayer.load();
+    secondaryPlayer.play().catch(err => addLog('EFEITO NÃO REPRODUZIDO: ' + err.message));
+    addLog(`EFEITO ${gesture} // ${file}`);
+  } catch(err) {
+    addLog('ERRO EFEITO: ' + err.message);
+  }
+}
 
 function playNextAudio() {
   const playedAudioIndex = audioIndex;
@@ -1966,7 +1993,8 @@ function onResults(res) {
   else if (index && middle && !ring && !pinky)           gesture = 'PEACE';
   else if (thumb && !index && !middle && !ring && !pinky)
   gesture = 'POLEGAR UP';
-
+else if (!index && !middle && !ring && !pinky && lm[4].y < lm[3].y)
+  gesture = 'CLOSED FIST';
 else if (
   lm[4].y > lm[3].y &&
   !index &&
@@ -1983,6 +2011,7 @@ const ampMap = {
   'PEACE':18,
   'POLEGAR UP':16,
   'POLEGAR DOWN':16,
+  'CLOSED FIST':12,
   'TRACKING':8
 };
 
@@ -1990,12 +2019,18 @@ waveTarget = ampMap[gesture] || 8;
  
   /* ═══════════════════════════════════════════
      GESTO CANCELAR
-     POLEGAR PARA BAIXO = cancela o áudio atual e restaura o anterior.
-     PEACE fica reservado para o HIPERSONO.
+     POLEGAR PARA BAIXO = EXPLOSÃO.
+     PEACE = HIPERSONO. ROCK = ARMA. CLOSED FIST = CANCELAR.
   ═══════════════════════════════════════════ */
-  if (gesture === 'POLEGAR DOWN' && prevGesture !== 'POLEGAR DOWN' && lockState !== 'boot') {
+  if (gesture === 'CLOSED FIST' && prevGesture !== 'CLOSED FIST' && lockState !== 'boot') {
     cancelCurrentAudio();
   }
+
+  // Efeitos secundários: funcionam independentemente de o áudio principal estar tocando.
+  if (gesture !== secondaryLastGesture && ['PEACE','ROCK','POLEGAR DOWN'].includes(gesture)) {
+    playSecondarySound(gesture);
+  }
+  if (gesture !== secondaryLastGesture) secondaryLastGesture = gesture;
 
   /* ═══════════════════════════════════════════
      3-STATE LOCK LOGIC
@@ -2054,7 +2089,7 @@ waveTarget = ampMap[gesture] || 8;
  
   /* gesture history on change (only post-unlock) */
   if (lockState !== 'boot' && gesture !== prevGesture && gesture !== 'TRACKING') {
-    if (gesture !== 'OPEN HAND' && gesture !== 'POLEGAR DOWN') pushHistory(gesture);
+    if (gesture !== 'OPEN HAND' && gesture !== 'CLOSED FIST') pushHistory(gesture);
   }
   prevGesture = gesture;
  
@@ -2063,7 +2098,7 @@ waveTarget = ampMap[gesture] || 8;
   gtagEl.style.left = `${(tx/W)*100}%`;
   gtagEl.style.top  = `${(ty/H)*100}%`;
   gtagEl.style.display = 'block';
-  gtagEl.innerText = ({'OPEN HAND':'MÃO ABERTA','ROCK':'ROCK','PEACE':'PAZ','THUMB UP':'POLEGAR PARA CIMA','THUMB DOWN':'POLEGAR PARA BAIXO','TRACKING':'RASTREANDO'}[gesture] || gesture);
+  gtagEl.innerText = ({'OPEN HAND':'MÃO ABERTA','ROCK':'ROCK','PEACE':'PAZ','THUMB UP':'POLEGAR PARA CIMA','THUMB DOWN':'POLEGAR PARA BAIXO','CLOSED FIST':'FECHADO / CANCELAR','TRACKING':'RASTREANDO'}[gesture] || gesture);
  
   updateFingerBars([thumb, index, middle, ring, pinky]);
   domBatch(gesture, lm, fps);
@@ -2087,7 +2122,7 @@ function domBatch(gesture, lm, fpsVal) {
     setTxt('gest-conf', 'CONFIANÇA —');
     setTxt('cx','—.———'); setTxt('cy','—.———'); setTxt('cz','—.———');
   } else {
-    setTxt('gest-name', ({'OPEN HAND':'MÃO ABERTA','ROCK':'ROCK','PEACE':'PAZ','THUMB UP':'POLEGAR PARA CIMA','THUMB DOWN':'POLEGAR PARA BAIXO','TRACKING':'RASTREANDO'}[gesture] || gesture));
+    setTxt('gest-name', ({'OPEN HAND':'MÃO ABERTA','ROCK':'ROCK','PEACE':'PAZ','THUMB UP':'POLEGAR PARA CIMA','THUMB DOWN':'POLEGAR PARA BAIXO','CLOSED FIST':'FECHADO / CANCELAR','TRACKING':'RASTREANDO'}[gesture] || gesture));
     setTxt('gest-conf', 'CONFIANÇA — ' + Math.round(70 + Math.random() * 25) + '%');
     if (lm) {
       setTxt('cx', lm[8].x.toFixed(3));
