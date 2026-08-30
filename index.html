@@ -629,6 +629,208 @@ canvas#fpsc,canvas#wave,canvas#rad,canvas#lmv{image-rendering:pixelated;}
 .log-body{color:rgba(199,226,106,.7);}
 #btn-arduino{border-color:var(--g)!important;color:var(--g)!important;background:#000!important;box-shadow:inset 0 0 0 1px rgba(155,188,15,.08);}
 #btn-arduino.connected{background:var(--g)!important;color:#000!important;}
+
+/* =========================================================
+   PRESENTATION MODE V3
+   Expanded side telemetry / compact central camera
+   Restrained monochrome 1979 phosphor-terminal aesthetic
+========================================================= */
+:root{
+  --g:#9bbc0f;
+  --g2:#b8d84b;
+  --phosphor:#c7e26a;
+  --dim:#6f8428;
+  --bg:#010301;
+}
+
+/* Wider telemetry, narrower central visual field */
+.app{
+  grid-template-columns: minmax(330px, 22vw) minmax(0, 1fr) minmax(330px, 22vw);
+  gap:5px;
+  padding:5px;
+}
+
+/* Side information should use the full available width */
+.lsb,.rsb{
+  padding:9px 10px;
+  gap:6px;
+}
+.lsb .subpanel,.rsb .subpanel,.lsb .mc{
+  padding:10px 11px;
+}
+.mcg{gap:5px}
+
+/* Compact central camera while retaining a substantial central panel */
+.viewer{
+  min-width:0;
+}
+.viewer #cam{
+  width:78% !important;
+  height:auto !important;
+  max-height:70% !important;
+  object-fit:contain !important;
+  position:absolute;
+  left:50%;
+  top:50%;
+  transform:translate(-50%,-50%);
+  image-rendering:auto;
+}
+
+/* Keep HUD brackets around the reduced camera */
+.viewer .hud{
+  pointer-events:none;
+}
+.viewer .gtag{
+  left:calc(11% + 8px);
+  right:calc(11% + 8px);
+}
+
+/* Audio is the primary readable narrative element */
+.aud{
+  min-height:215px !important;
+  padding:14px 15px !important;
+  border-color:rgba(155,188,15,.34) !important;
+  background:#020602 !important;
+}
+.aud-track{
+  gap:14px;
+  padding:10px 0 !important;
+}
+.aud-num{
+  min-width:46px;
+  font-size:42px !important;
+}
+.aud-name{
+  font-size:18px !important;
+  letter-spacing:2.5px !important;
+  color:#d3eb75 !important;
+  text-shadow:0 0 7px rgba(155,188,15,.35) !important;
+}
+.aud-desc{
+  margin-top:9px !important;
+  font-size:13px !important;
+  line-height:1.55 !important;
+  letter-spacing:1.1px !important;
+  color:#c7e26a !important;
+  min-height:58px !important;
+}
+.aud-narrative{
+  margin-top:9px !important;
+  padding:8px 9px !important;
+  border-left:3px solid var(--g) !important;
+  background:rgba(155,188,15,.055) !important;
+  font-size:12px !important;
+  line-height:1.45 !important;
+  letter-spacing:1.5px !important;
+  color:#e0f38a !important;
+  min-height:42px !important;
+}
+.aud-state{
+  font-size:9px !important;
+  color:#788f2d !important;
+}
+
+/* Less color: force interface accents toward phosphor green */
+svg{
+  stroke:currentColor;
+}
+.cam-lock-title,.cam-lock-sub,
+.warn,.aud.playing .aud-state{
+  color:var(--g) !important;
+  text-shadow:0 0 4px rgba(155,188,15,.25) !important;
+}
+.warn svg,.cam-lock-icon{
+  color:var(--g) !important;
+  stroke:currentColor !important;
+  fill:none !important;
+}
+.aud.locked{
+  border-color:rgba(155,188,15,.25) !important;
+  background:#020602 !important;
+}
+
+/* Make telemetry denser and more useful at a distance */
+.label{
+  color:rgba(199,226,106,.62) !important;
+  font-size:9px !important;
+}
+.val-lg{
+  color:#b9d95a !important;
+}
+.val-sm,.ri-k,.ri-v{
+  color:rgba(199,226,106,.52) !important;
+}
+.lh-h1{
+  font-size:22px !important;
+}
+.lh-tag{
+  color:rgba(199,226,106,.30) !important;
+}
+.fb-lbl,.fb-val{
+  color:rgba(199,226,106,.50) !important;
+}
+.fb-fill{
+  background:rgba(155,188,15,.34) !important;
+}
+.fb-fill.up{
+  background:var(--g) !important;
+  box-shadow:0 0 4px rgba(155,188,15,.55) !important;
+}
+
+/* Remove modern-looking multicolor effects */
+body{
+  background:#010301 !important;
+}
+body::before{
+  background:repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 2px,
+    rgba(155,188,15,.045) 3px,
+    transparent 4px
+  ) !important;
+}
+.grid{
+  background-image:
+    linear-gradient(rgba(155,188,15,.018) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(155,188,15,.018) 1px,transparent 1px) !important;
+}
+.bx-title::before,.bx-title::after{
+  color:var(--g) !important;
+}
+.panel{
+  border-color:rgba(155,188,15,.30) !important;
+}
+.gtag{
+  color:var(--g) !important;
+  border-color:rgba(155,188,15,.35) !important;
+  background:#000 !important;
+}
+
+/* Larger side canvases now that the sidebars are wider */
+canvas#lmv{height:150px !important;}
+canvas#rad{height:125px !important;}
+canvas#fpsc{height:38px !important;}
+canvas#wave{height:38px !important;}
+
+/* Responsive fallback */
+@media (max-width:1250px){
+  .app{
+    grid-template-columns:280px minmax(0,1fr) 280px;
+  }
+  .viewer #cam{width:72% !important;}
+}
+@media (max-width:950px){
+  .app{
+    grid-template-columns:235px minmax(0,1fr) 235px;
+    gap:3px;
+    padding:3px;
+  }
+  .viewer #cam{width:68% !important;}
+  .aud-desc{font-size:10px !important;}
+  .aud-name{font-size:14px !important;}
+}
+
 </style>
 </head>
 <body>
@@ -1741,8 +1943,9 @@ function domBatch(gesture, lm, fpsVal) {
   }
 }
  
+/* init */
 updateAudDisplay();
 setAudPanelState('locked');
 </script>
 </body>
-</html>s
+</html>
