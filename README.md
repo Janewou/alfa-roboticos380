@@ -12,26 +12,39 @@
 
 Este repositório documenta o desenvolvimento da apresentação artística da equipe **Alfa Robóticos**, inspirada na franquia **Alien**.
 
-Nosso objetivo foi unir robótica, programação, eletrônica, cenografia e atuação para criar uma experiência imersiva baseada na atmosfera da nave **USCSS Nostromo**.
+Nosso objetivo foi unir robótica, programação, eletrônica, cenografia e atuação para criar uma experiência imersiva baseada na atmosfera da nave **Nostromo**.
 
-Durante meses de desenvolvimento, a equipe trabalhou **três dias por semana**, permanecendo frequentemente **até às 18h**, realizando programação, soldagem, modelagem 3D, montagem eletrônica, pintura, ensaios e integração entre todos os sistemas.
+Durante meses de desenvolvimento, a equipe trabalhou **cinco dias por semana**, permanecendo frequentemente **até às 18h**, realizando programação, soldagem, modelagem 3D, montagem eletrônica, pintura, ensaios e integração entre todos os sistemas.
 
 ---
 
 # Tecnologias
 
 ## Hardware
-
-- Arduino UNO
-- LEGO Spike Prime
-- micro:bit
-- Sensor VL53L0X (Time of Flight)
-- Sensor Ultrassônico LEGO
-- Attiny 85
-- Sensor TCRT5000
-- WS2812 LED Strip
-- WS2812 LED Ring
-- Impressão 3D
+![Arduino](arduino.png)
+- Arduino UNO;
+![Spike](spikeprime.png)
+- LEGO Spike Prime;
+![microbit](microbit.png)
+- micro:bit;
+![vl53](vl53.png)
+- Sensor VL53L0X (Time of Flight);
+![ultrassonico](sensorultra.png)
+- Sensor Ultrassônico LEGO SPIKE PRIME;
+![nano](nano.png)
+- Arduino NANO;
+![IR](fc51.png)
+- Sensor de refletância TCRT-5000;
+![Fita Led](fitaled.png)
+- WS2812 LED Strip;
+![Anel Led](anelled.png)
+- WS2812 LED Ring;
+![rfid](rfid.png)
+- Sensor RFID;
+![ESP32](esp32.png)
+- ESP 32 Dev Modules;
+![vostro](vostro.png)
+- Notebook Dell Vostro;
 
 ## Software
 
