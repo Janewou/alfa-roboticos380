@@ -21,30 +21,42 @@ Durante meses de desenvolvimento, a equipe trabalhou **cinco dias por semana**, 
 # Tecnologias
 
 ## Hardware
-![Arduino](arduino.png)
+
 - Arduino UNO;
-![Spike](spikeprime.png)
+![Arduino](arduino.png)
+
 - LEGO Spike Prime;
-![microbit](microbit.png)
+![Spike](spikeprime.png)
+
 - micro:bit;
-![vl53](vl53.png)
+![microbit](microbit.png)
+
 - Sensor VL53L0X (Time of Flight);
-![ultrassonico](sensorultra.png)
+![vl53](vl53.png)
+
 - Sensor Ultrassônico LEGO SPIKE PRIME;
-![nano](nano.png)
+![ultrassonico](sensorultra.png)
+
 - Arduino NANO;
-![IR](fc51.png)
+![nano](nano.png)
+
 - Sensor de refletância TCRT-5000;
-![Fita Led](fitaled.png)
+![IR](fc51.png)
+
 - WS2812 LED Strip;
-![Anel Led](anelled.png)
+![Fita Led](fitaled.png)
+
 - WS2812 LED Ring;
-![rfid](rfid.png)
+![Anel Led](anelled.png)
+
 - Sensor RFID;
-![ESP32](esp32.png)
+![rfid](rfid.png)
+
 - ESP 32 Dev Modules;
-![vostro](vostro.png)
+![ESP32](esp32.png)
+
 - Notebook Dell Vostro;
+![vostro](vostro.png)
 
 ## Software
 
