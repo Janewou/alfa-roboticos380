@@ -23,7 +23,7 @@ Durante meses de desenvolvimento, a equipe trabalhou **cinco dias por semana**, 
 ## Hardware
 
 - Arduino UNO;
-![Arduino](arduino.png)
+![Arduino](arduinouno.png)
 
 - LEGO Spike Prime;
 ![Spike](spikeprime.png)
