@@ -2133,7 +2133,7 @@ function initHands() {
   const hands = new Hands({ locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${f}` });
   hands.setOptions({
     maxNumHands:1, modelComplexity:1,
-    minDetectionConfidence:.55, minTrackingConfidence:.55,
+    minDetectionConfidence:.7, minTrackingConfidence:.6,
     selfieMode:true
   });
   hands.onResults(onResults);
@@ -2161,6 +2161,72 @@ const HAND_CONN = [
 /* ═══════════════════════════════════════════════════
    MEDIAPIPE RESULTS CALLBACK
 ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   REFINAMENTO DO RECONHECIMENTO
+   • One Euro Filter nos 21 landmarks (tira o tremor sem atrasar o movimento)
+   • Validação geométrica + confiança de lateralidade (descarta "mão" falsa em boca/orelha/rosto)
+   • Confirmação por N frames e tolerância a falhas curtas
+   • Histerese nos dedos e estabilização do gesto
+═══════════════════════════════════════════════════ */
+const REFINE = {
+  minCutoff: 1.0,      // ↓ = mais suave parado (menos tremor)
+  beta: 6,             // ↑ = acompanha melhor movimento rápido
+  dCutoff: 1.0,
+  minScore: 0.75,      // confiança mínima de "ser mão"
+  confirmFrames: 4,    // frames válidos seguidos para aceitar a mão
+  holdFrames: 3,       // frames perdidos tolerados antes de dizer "sem mão"
+  gestureFrames: 3     // frames iguais seguidos para trocar de gesto
+};
+
+class OneEuro {
+  constructor(minC, beta, dC) { this.minC = minC; this.beta = beta; this.dC = dC; this.t = null; this.x = 0; this.dx = 0; }
+  _a(cut, dt) { const tau = 1 / (2 * Math.PI * cut); return 1 / (1 + tau / dt); }
+  filter(x, tMs) {
+    if (this.t === null) { this.t = tMs; this.x = x; this.dx = 0; return x; }
+    const dt = Math.max((tMs - this.t) / 1000, 1e-3); this.t = tMs;
+    const d = (x - this.x) / dt;
+    this.dx += this._a(this.dC, dt) * (d - this.dx);
+    const cut = this.minC + this.beta * Math.abs(this.dx);
+    this.x += this._a(cut, dt) * (x - this.x);
+    return this.x;
+  }
+  reset() { this.t = null; }
+}
+const lmFilters = Array.from({ length: 21 }, () => [0, 1, 2].map(() => new OneEuro(REFINE.minCutoff, REFINE.beta, REFINE.dCutoff)));
+function smoothLandmarks(raw, tMs) {
+  return raw.map((p, i) => ({
+    x: lmFilters[i][0].filter(p.x, tMs),
+    y: lmFilters[i][1].filter(p.y, tMs),
+    z: lmFilters[i][2].filter(p.z, tMs)
+  }));
+}
+function resetRefine() {
+  lmFilters.forEach(f => f.forEach(o => o.reset()));
+  validStreak = 0; missCount = 0; lastLM = null;
+  gestCand = null; gestCount = 0; gestStable = 'TRACKING';
+  fingerState = [false, false, false, false]; thumbOutState = false; thumbDownState = false;
+}
+let validStreak = 0, missCount = 0, lastLM = null, lastHandScore = 0.9;
+let gestCand = null, gestCount = 0, gestStable = 'TRACKING';
+let fingerState = [false, false, false, false], thumbOutState = false, thumbDownState = false;
+
+function isPlausibleHand(lm, score, W, H) {
+  if (score < REFINE.minScore) return false;
+  const d = (a, b) => Math.hypot((lm[a].x - lm[b].x) * W, (lm[a].y - lm[b].y) * H);
+  const palm = d(0, 9);
+  if (palm < H * 0.05 || palm > H * 0.75) return false;          // minúscula ou gigante = falso
+  const pw = d(5, 17) / palm;
+  if (pw < 0.25 || pw > 1.7) return false;                         // proporção da palma
+  const chains = [[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]];
+  for (const c of chains) {                                        // comprimento dos dedos coerente (punho fechado passa)
+    const r = (d(c[0],c[1]) + d(c[1],c[2]) + d(c[2],c[3])) / palm;
+    if (r < 0.15 || r > 1.9) return false;
+  }
+  let out = 0;
+  for (const p of lm) if (p.x < -0.05 || p.x > 1.05 || p.y < -0.05 || p.y > 1.05) out++;
+  return out <= 5;
+}
+ 
 function onResults(res) {
   const now = Date.now();
   const dt  = lastFrameT ? now - lastFrameT : 16;
@@ -2181,21 +2247,38 @@ function onResults(res) {
   camCtx.fillStyle = 'rgba(0,255,80,.025)';
   camCtx.fillRect(0, 0, W, H);
  
+  /* ── valida, suaviza e confirma a mão ── */
+  const tMs = performance.now();
+  let lm = null;
+  const rawLM = res.multiHandLandmarks?.[0];
+  const score = res.multiHandedness?.[0]?.score ?? 1;
+  if (rawLM && isPlausibleHand(rawLM, score, W, H)) {
+    const sm = smoothLandmarks(rawLM, tMs);
+    lastHandScore = score;
+    missCount = 0;
+    if (++validStreak >= REFINE.confirmFrames) { lm = sm; lastLM = sm; }
+  } else {
+    validStreak = 0;
+    if (++missCount <= REFINE.holdFrames && lastLM) lm = lastLM;      // segura o último quadro bom
+    else if (missCount > REFINE.holdFrames) { lastLM = null; lmFilters.forEach(f => f.forEach(o => o.reset())); }
+  }
+
   /* ── no hand detected ── */
-  if (!res.multiHandLandmarks?.length) {
+  if (!lm) {
     gtagEl.style.display = 'none';
     currentLM = null;
     waveTarget = 4;
     setGestureIcon('');
     handWasOpen     = false;
     openHandStartTime = 0;
+    gestCand = null; gestCount = 0; gestStable = 'TRACKING';
+    fingerState = [false, false, false, false]; thumbOutState = false; thumbDownState = false;
     domBatch(null, null, null);
     return;
   }
 
   detections++;
-  const lm = res.multiHandLandmarks[0];
-  currentLM = lm; // for 3D view (already in selfie coords from MediaPipe)
+  currentLM = lm;
  
   /* ── draw hand skeleton ── */
   const toScreen = p => [p.x * W, p.y * H];
@@ -2231,13 +2314,22 @@ function onResults(res) {
   camCtx.strokeStyle = 'rgba(57,255,20,.9)'; camCtx.lineWidth = 2;
   bc(x1,y1, 1, 1); bc(x2,y1,-1, 1); bc(x1,y2, 1,-1); bc(x2,y2,-1,-1);
  
-  /* ── classify fingers ── */
-  const isUp = (t, b) => lm[t].y < lm[b].y;
-  const thumb  = lm[4].x < lm[3].x; // mirrored: left is greater x in selfie
-  const index  = isUp(8,  6);
-  const middle = isUp(12,10);
-  const ring   = isUp(16,14);
-  const pinky  = isUp(20,18);
+  /* ── classify fingers (histerese, escalada pelo tamanho da palma) ── */
+  const palmRef = Math.hypot((lm[0].x - lm[9].x) * W, (lm[0].y - lm[9].y) * H) || 1;
+  const fingerUp = (k, t, b) => {
+    const dy = (lm[b].y - lm[t].y) * H / palmRef;          // >0 = ponta acima da junta
+    const up = fingerState[k] ? dy > 0.02 : dy > 0.10;
+    fingerState[k] = up; return up;
+  };
+  const dxT = (lm[3].x - lm[4].x) * W / palmRef;
+  thumbOutState = thumbOutState ? dxT > -0.03 : dxT > 0.05;
+  const dyT = (lm[3].y - lm[4].y) * H / palmRef;           // <0 = ponta do polegar abaixo
+  thumbDownState = thumbDownState ? dyT < -0.03 : dyT < -0.15;
+  const thumb  = thumbOutState;
+  const index  = fingerUp(0, 8, 6);
+  const middle = fingerUp(1, 12, 10);
+  const ring   = fingerUp(2, 16, 14);
+  const pinky  = fingerUp(3, 20, 18);
  
   /* ── classify gesture ── */
   let gesture = 'TRACKING';
@@ -2246,16 +2338,21 @@ function onResults(res) {
   else if (index && middle && !ring && !pinky)           gesture = 'PEACE';
   else if (thumb && !index && !middle && !ring && !pinky)
   gesture = 'POLEGAR UP';
-else if (!index && !middle && !ring && !pinky && lm[4].y < lm[3].y)
+else if (!index && !middle && !ring && !pinky && !thumbDownState)
   gesture = 'CLOSED FIST';
 else if (
-  lm[4].y > lm[3].y &&
+  thumbDownState &&
   !index &&
   !middle &&
   !ring &&
   !pinky
 )
   gesture = 'POLEGAR DOWN';
+
+/* estabiliza: só troca de gesto após N frames iguais seguidos */
+if (gesture === gestCand) gestCount++; else { gestCand = gesture; gestCount = 1; }
+if (gestCount >= REFINE.gestureFrames) gestStable = gesture;
+gesture = gestStable;
 
 /* wave amplitude mapping */
 const ampMap = {
@@ -2376,7 +2473,7 @@ function domBatch(gesture, lm, fpsVal) {
     setTxt('cx','—.———'); setTxt('cy','—.———'); setTxt('cz','—.———');
   } else {
     setTxt('gest-name', ({'OPEN HAND':'MÃO ABERTA','ROCK':'ROCK','PEACE':'PAZ','THUMB UP':'POLEGAR PARA CIMA','THUMB DOWN':'POLEGAR PARA BAIXO','CLOSED FIST':'FECHADO / CANCELAR','TRACKING':'RASTREANDO'}[gesture] || gesture));
-    setTxt('gest-conf', 'CONFIANÇA — ' + Math.round(70 + Math.random() * 25) + '%');
+    setTxt('gest-conf', 'CONFIANÇA — ' + Math.round(lastHandScore * 100) + '%');
     if (lm) {
       setTxt('cx', lm[8].x.toFixed(3));
       setTxt('cy', lm[8].y.toFixed(3));
