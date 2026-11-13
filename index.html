@@ -460,6 +460,25 @@ body.alarm-orange::after { animation:hudAlarmOrange .42s steps(2,end) infinite; 
   50% { opacity:1; box-shadow:inset 0 0 0 5px rgba(255,150,30,.62), inset 0 0 120px rgba(255,120,20,.16); }
 }
 
+/* stage de vídeo (áudio 5) — cobre apenas o painel central */
+.video-stage{
+  position:fixed; inset:0; z-index:9000; background:#000;
+  display:none; align-items:center; justify-content:center;
+}
+.video-stage.on{ display:flex; }
+.video-stage video{
+  width:100%; height:100%; object-fit:contain; background:#000;
+  filter:saturate(.7) contrast(1.1) brightness(.9);
+}
+.video-stage-tag{
+  position:absolute; top:18px; left:20px; z-index:2;
+  font-family:var(--D); font-size:9px; letter-spacing:4px; color:var(--g);
+  text-shadow:0 0 6px var(--g); border:1px solid rgba(57,255,20,.4);
+  background:rgba(0,0,0,.8); padding:4px 9px;
+}
+
+body.video-on *, body.video-on *::before, body.video-on *::after { animation-play-state: paused !important; }
+
 /* audio flash pop */
 
 .audioflash {
@@ -1303,6 +1322,12 @@ body {
   </aside>
 </div>
  
+<!-- vídeo liberado pelo áudio 5 (tela cheia) -->
+<div class="video-stage" id="videoStage">
+  <div class="video-stage-tag">▶ TRANSMISSÃO // ÁUDIO 05</div>
+  <video id="stageVideo" playsinline preload="auto"></video>
+</div>
+
 <!-- ═══════════════════════════════════════
      MediaPipe
 ══════════════════════════════════════════ -->
@@ -1385,7 +1410,9 @@ async function send(data) {
    CONFIG — ajuste aqui
 ═══════════════════════════════════════════════════ */
 const CFG = {
-  totalAudios : 4,
+  totalAudios : 5,
+  videoAudio  : 5,                                  // o áudio nº 5 libera o vídeo
+  arquivoVideo: 'gemini_generated_video_v2.mp4',    // vídeo na mesma pasta do index.html
   pastaSons   : 'Sounds/',
   extensao    : '.mp3',
   debounceMs  : 175,   // ms de mão aberta contínua para confirmar gesto
@@ -1395,7 +1422,7 @@ const CFG = {
    MOTHER TEXT DECODE / TYPEWRITER
    No external asset required: the typing sound is
    synthesized locally and mixed very quietly so it
-   remains perceptible without covering AUDIO 01–04.
+   remains perceptible without covering AUDIO 01–05.
 ═══════════════════════════════════════════════════ */
 const DECODE_CFG = { charsPerSecond: 36, scrambleMs: 63 };
 let decodeTimer = null;
@@ -1423,7 +1450,7 @@ function startDecodeText(audioNumber){
 
   // O texto só começa 5 segundos depois do áudio iniciar.
   decodeDelayTimer = setTimeout(() => {
-    if (run !== decodeRunId || player.paused || player.ended) return;
+    if (run !== decodeRunId || activeMedia.paused || activeMedia.ended) return;
 
     el.classList.add('decode-live');
     el.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
@@ -1431,7 +1458,7 @@ function startDecodeText(audioNumber){
     const interval = Math.max(18, Math.round(1000 / DECODE_CFG.charsPerSecond));
 
     decodeTimer = setInterval(() => {
-      if (run !== decodeRunId || player.paused || player.ended) {
+      if (run !== decodeRunId || activeMedia.paused || activeMedia.ended) {
         stopDecodeText();
         return;
       }
@@ -1508,7 +1535,8 @@ const AUDIO_INFO = {
   1: { title:'FALHA DE CONTENÇÃO', desc:'ALERTA!', narrative:'MOTHER // FALHA NO COMPARTIMENTO DE CARGA, PROTEJA A INTEGRIDADE DOS ESPÉCIMES' },
   2: { title:'ANOMALIA BIOLÓGICA', desc:'IDENTIFICANDO CAUSA', narrative:'MOTHER // CONFIDENCIALIDADE NÍVEL ÔMEGA (RESTRITA A DAVID 8) - DIRETRIZ 937 // <p>PRIORIDADE UM: GARANTIR O RETORNO DO ORGANISMO PARA ANÁLISE.</p> <p>TODAS AS OUTRAS CONSIDERAÇÕES SÃO SECUNDÁRIAS.</p> <p>TRIPULAÇÃO DESCARTÁVEL</p> ' },
   3: { title:'ESCANEAMENTO EM CURSO', desc:'ANORMALIDADE DETECTADA!', narrative:'MOTHER // ANORMALIDADE DETECTADA NA FIAÇÃO, RISCO BIOLÓGICO DETECTADO, NOVA DIRETRIZ, PRESERVAR OS ESPÉCIMES' },
-  4: { title:'PROTOCOLO 67', desc:'TRIPULANTE NEUTRALIZADO', narrative:'MOTHER // TRIPULANTE PARKER M. NEUTRALIZADO // DAVID 8, TOMAR DECISÃO DE ACORDO COM CÓDIGO WEYLAND-YUTANI DE CONDUTA (LEMBRE-SE DA DIRETRIZ 937)' }
+  4: { title:'PROTOCOLO 67', desc:'TRIPULANTE NEUTRALIZADO', narrative:'MOTHER // TRIPULANTE PARKER M. NEUTRALIZADO // DAVID 8, TOMAR DECISÃO DE ACORDO COM CÓDIGO WEYLAND-YUTANI DE CONDUTA (LEMBRE-SE DA DIRETRIZ 937)' },
+  5: { title:'TRANSMISSÃO VISUAL', desc:'FEED DE VÍDEO LIBERADO', narrative:'MOTHER // REGISTRO VISUAL LIBERADO // EXIBINDO TRANSMISSÃO DO COMPARTIMENTO DE CARGA' }
 };
 let audiosPlayed   = 0;
 let progressTimer  = null;
@@ -1533,6 +1561,9 @@ let previousAudioIndex = 0;
 
 // single global audio player (prevents memory bloat)
 const player = new Audio();
+const stageVideoEl = document.getElementById('stageVideo');
+const videoStageEl = document.getElementById('videoStage');
+let activeMedia = player;   // elemento que está tocando (áudio normal ou vídeo do nº 5)
 const secondaryPlayer = new Audio();
 secondaryPlayer.preload = 'auto';
 secondaryPlayer.volume = 1.0;
@@ -1596,7 +1627,14 @@ const pad = n => String(n).padStart(2,'0');
 /* ═══════════════════════════════════════════════════
    HELPERS
 ═══════════════════════════════════════════════════ */
-const setTxt = (id, v) => { const e = document.getElementById(id); if (e) e.innerText = v; };
+const _txtCache = new Map();
+const setTxt = (id, v) => {
+  let c = _txtCache.get(id);
+  if (!c) { const e = document.getElementById(id); if (!e) return; c = { e, v: null }; _txtCache.set(id, c); }
+  v = String(v);
+  if (c.v === v) return;
+  c.v = v; c.e.textContent = v;
+};
  
 function addLog(msg) {
   const ts = new Date().toLocaleTimeString('pt-BR', { hour12:false });
@@ -1713,7 +1751,14 @@ function ensureAudioGain(){
   player.volume = 1.0;
 }
 
-player.onended = () => {
+function hideVideoStage(){
+  stageVideoEl.pause();
+  videoStageEl.classList.remove('on');
+  document.body.classList.remove('video-on');
+}
+
+function onMediaEnded() {
+  hideVideoStage();
   clearInterval(progressTimer);
   audFillEl.style.width = '100%';
   playing = false;
@@ -1723,16 +1768,21 @@ player.onended = () => {
   setTxt('aud-state', 'CONCLUÍDO');
   addLog('ÁUDIO FINALIZADO — AGUARDANDO NOVA MÃO ABERTA');
   // NÃO muda audioIndex e NÃO reescreve o texto.
-};
+}
+player.onended = onMediaEnded;
+stageVideoEl.onended = onMediaEnded;
 
-player.onerror = () => {
+function onMediaError() {
+  hideVideoStage();
   clearInterval(progressTimer);
   playing = false;
   lockState = 'unlocked';
   activeAudioIndex = 0;
   setAudPanelState('idle');
-  addLog('ERRO DE ÁUDIO — VERIFIQUE O CAMINHO DO ARQUIVO');
-};
+  addLog('ERRO DE ÁUDIO/VÍDEO — VERIFIQUE O CAMINHO DO ARQUIVO');
+}
+player.onerror = onMediaError;
+stageVideoEl.onerror = onMediaError;
 
 function playSecondarySound(gesture){
   const files = {
@@ -1768,6 +1818,9 @@ function playNextAudio() {
   if (playedAudioIndex === 4) document.body.classList.add('alarm-orange');
 
   if (!player.paused) { player.pause(); player.currentTime = 0; }
+  hideVideoStage();
+  const isVideo = playedAudioIndex === CFG.videoAudio;
+  activeMedia = isVideo ? stageVideoEl : player;
 
   lockState = 'playing';
   playing = true;
@@ -1775,13 +1828,15 @@ function playNextAudio() {
   setAudPanelState('playing');
   setTxt('r-audio', audiosPlayed);
 
-  const path = new URL(`${CFG.pastaSons}${playedAudioIndex}${CFG.extensao}`, document.baseURI).href;
-  addLog(`ÁUDIO ENVIADO: ${path}`);
+  const path = isVideo
+    ? new URL(CFG.arquivoVideo, document.baseURI).href
+    : new URL(`${CFG.pastaSons}${playedAudioIndex}${CFG.extensao}`, document.baseURI).href;
+  addLog(`${isVideo ? 'VÍDEO LIBERADO' : 'ÁUDIO ENVIADO'}: ${path}`);
 
   const directiveEl = document.getElementById('directive');
   const crewEl = document.getElementById('crew-state');
   const hazardEl = document.getElementById('hazard-state');
-  const threat = ['CRÍTICO','ALTO','SEVERO','MÁXIMO'][playedAudioIndex-1] || 'DESCONHECIDO';
+  const threat = ['CRÍTICO','ALTO','SEVERO','MÁXIMO','TOTAL'][playedAudioIndex-1] || 'DESCONHECIDO';
   if (directiveEl) directiveEl.innerText = playedAudioIndex >= 3 ? 'PRESERVAR ESPÉCIME' : 'CONTER';
   if (crewEl) crewEl.innerText = playedAudioIndex >= 3 ? 'COMPROMETIDA' : (playedAudioIndex === 2 ? 'ALERTA' : 'NORMAL');
   if (hazardEl) hazardEl.innerText = threat;
@@ -1798,8 +1853,9 @@ function playNextAudio() {
     audNarrativeEl.innerHTML = '<span class="decode-prefix">MOTHER // </span><span class="decode-text"></span>';
   }
 
-  player.src = path;
-  player.load();
+  activeMedia.src = path;
+  activeMedia.load();
+  if (isVideo) { videoStageEl.classList.add('on'); document.body.classList.add('video-on'); }
 
   (async () => {
     try {
@@ -1807,17 +1863,18 @@ function playNextAudio() {
       // Não aguardamos AudioContext.resume() antes dele, pois isso pode fazer
       // o navegador perder a user activation e bloquear o áudio.
       ensureAudioGain();
-      const playPromise = player.play();
+      const playPromise = activeMedia.play();
       if (playPromise && typeof playPromise.then === 'function') await playPromise;
       // O áudio já está efetivamente em reprodução aqui. Só então iniciamos
       // o contador de 5 s do typewriter.
       startDecodeText(playedAudioIndex);
       clearInterval(progressTimer);
       progressTimer = setInterval(() => {
-        if (player.duration) audFillEl.style.width = (player.currentTime / player.duration * 100) + '%';
+        if (activeMedia.duration) audFillEl.style.width = (activeMedia.currentTime / activeMedia.duration * 100) + '%';
       }, 80);
     } catch(err) {
       console.warn('Áudio não reproduzido:', err);
+      hideVideoStage();
       stopDecodeText();
       playing = false;
       lockState = 'unlocked';
@@ -1844,6 +1901,10 @@ function cancelCurrentAudio(){
   progressTimer = null;
   player.pause();
   player.currentTime = 0;
+  stageVideoEl.pause();
+  stageVideoEl.currentTime = 0;
+  hideVideoStage();
+  activeMedia = player;
   audFillEl.style.width = '0%';
 
   playing = false;
@@ -1873,6 +1934,20 @@ function cancelCurrentAudio(){
 /* ═══════════════════════════════════════════════════
    FPS GRAPH (rAF loop)
 ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════
+   AGENDADOR ÚNICO — 1 rAF, limitado a ~30fps, pausa com aba oculta ou vídeo em tela cheia
+═══════════════════════════════════════════════════ */
+const sideLoops = [];
+const registerLoop = fn => sideLoops.push(fn);
+let sideLast = 0;
+(function sideTick(t) {
+  requestAnimationFrame(sideTick);
+  if (document.hidden || videoStageEl.classList.contains('on')) return;
+  if (t - sideLast < 33) return;
+  sideLast = t;
+  for (let k = 0; k < sideLoops.length; k++) sideLoops[k]();
+})(0);
+ 
 (function fpsLoop() {
   const c = document.getElementById('fpsc');
   const x = c.getContext('2d', { alpha:false });
@@ -1893,8 +1968,8 @@ function cancelCurrentAudio(){
     x.strokeStyle = 'rgba(57,255,20,.7)'; x.lineWidth = 1.5; x.stroke();
     x.lineTo(W, H); x.lineTo(0, H); x.closePath();
     x.fillStyle = 'rgba(57,255,20,.05)'; x.fill();
-    requestAnimationFrame(draw);
   }
+  registerLoop(draw);
   draw();
 })();
  
@@ -1905,24 +1980,23 @@ function cancelCurrentAudio(){
   const c = document.getElementById('wave');
   const x = c.getContext('2d', { alpha:false });
   const W = c.width, H = c.height;
-  let phase = 0, hzPhase = 0;
+  let phase = 0, hzPhase = 0, hzTick = 0;
   function draw() {
-    waveAmp += (waveTarget - waveAmp) * 0.07;
-    hzPhase += 0.05;
+    waveAmp += (waveTarget - waveAmp) * 0.13;
+    hzPhase += 0.1;
     x.fillStyle = '#000'; x.fillRect(0, 0, W, H);
     x.strokeStyle = 'rgba(57,255,20,.62)'; x.lineWidth = 1.4;
-    x.shadowColor = 'rgba(57,255,20,.3)'; x.shadowBlur = 3;
     x.beginPath();
     for (let i = 0; i < W; i++) {
       const t = (i / W) * Math.PI * 8 + phase;
       const y = H/2 + Math.sin(t) * waveAmp + Math.sin(t * 2.2 + 1.4) * waveAmp * .35;
       i === 0 ? x.moveTo(i, y) : x.lineTo(i, y);
     }
-    x.stroke(); x.shadowBlur = 0;
-    phase += 0.07;
-    setTxt('wave-hz', (Math.abs(waveAmp * 1.2) + Math.sin(hzPhase) * 1.5).toFixed(1) + ' Hz');
-    requestAnimationFrame(draw);
+    x.stroke();
+    phase += 0.14;
+    if ((hzTick++ & 3) === 0) setTxt('wave-hz', (Math.abs(waveAmp * 1.2) + Math.sin(hzPhase) * 1.5).toFixed(1) + ' Hz');
   }
+  registerLoop(draw);
   draw();
 })();
  
@@ -1959,7 +2033,7 @@ function cancelCurrentAudio(){
     x.beginPath(); x.moveTo(CX, CY); x.lineTo(ex, ey);
     x.strokeStyle = 'rgba(57,255,20,.55)'; x.lineWidth = 1.5; x.stroke();
     blips.forEach(b => {
-      b.age++;
+      b.age += 2;
       const a = Math.max(0, 1 - b.age / 80);
       x.beginPath(); x.arc(b.bx, b.by, 2.5, 0, Math.PI*2);
       x.fillStyle = `rgba(57,255,20,${a})`; x.fill();
@@ -1968,9 +2042,9 @@ function cancelCurrentAudio(){
         x.strokeStyle = `rgba(57,255,20,${(a-.5)*.35})`; x.lineWidth = 1; x.stroke();
       }
     });
-    ang = (ang + 1.1) % 360;
-    requestAnimationFrame(draw);
+    ang = (ang + 2.2) % 360;
   }
+  registerLoop(draw);
   draw();
 })();
  
@@ -2013,8 +2087,8 @@ let currentLM = null;
       x.font = '7px Share Tech Mono'; x.fillStyle = 'rgba(57,255,20,.18)';
       x.textAlign = 'center'; x.fillText('NENHUMA MÃO', W/2, H-6);
     }
-    requestAnimationFrame(draw);
   }
+  registerLoop(draw);
   draw();
 })();
  
@@ -2132,7 +2206,8 @@ function onResults(res) {
     const [bx,by] = toScreen(lm[b]);
     camCtx.moveTo(ax, ay); camCtx.lineTo(bx, by);
   });
-  camCtx.strokeStyle = 'rgba(57,255,136,.95)'; camCtx.lineWidth = 2.8; camCtx.shadowColor = 'rgba(57,255,136,.55)'; camCtx.shadowBlur = 6; camCtx.stroke(); camCtx.shadowBlur = 0;
+  camCtx.strokeStyle = 'rgba(57,255,136,.28)'; camCtx.lineWidth = 7; camCtx.stroke();
+  camCtx.strokeStyle = 'rgba(57,255,136,.95)'; camCtx.lineWidth = 2.8; camCtx.stroke();
  
   // key landmarks
   [0,4,8,12,16,20,5,9,13,17].forEach(i => {
