@@ -2280,39 +2280,70 @@ function onResults(res) {
   detections++;
   currentLM = lm;
  
-  /* ── draw hand skeleton ── */
+  /* ── draw hand skeleton (visual refinado) ── */
   const toScreen = p => [p.x * W, p.y * H];
- 
+  const P = lm.map(toScreen);
+  const GR = '57,255,136';
+  const FINGERS = [[1,2,3,4],[5,6,7,8],[9,10,11,12],[13,14,15,16],[17,18,19,20]];
+  camCtx.lineJoin = 'round'; camCtx.lineCap = 'round';
+
+  /* palma: preenchimento translúcido + contorno fino */
   camCtx.beginPath();
-  HAND_CONN.forEach(([a, b]) => {
-    const [ax,ay] = toScreen(lm[a]);
-    const [bx,by] = toScreen(lm[b]);
-    camCtx.moveTo(ax, ay); camCtx.lineTo(bx, by);
-  });
-  camCtx.strokeStyle = 'rgba(57,255,136,.28)'; camCtx.lineWidth = 7; camCtx.stroke();
-  camCtx.strokeStyle = 'rgba(57,255,136,.95)'; camCtx.lineWidth = 2.8; camCtx.stroke();
- 
-  // key landmarks
-  [0,4,8,12,16,20,5,9,13,17].forEach(i => {
-    const [px,py] = toScreen(lm[i]);
-    camCtx.beginPath(); camCtx.arc(px, py, i===0 ? 5 : 3.5, 0, Math.PI*2);
-    camCtx.fillStyle = i===0 ? 'rgba(255,255,255,.95)' : 'rgba(57,255,136,.95)';
-    camCtx.fill();
-  });
- 
-  /* ── bounding box ── */
-  const xs = lm.map(p => p.x * W), ys = lm.map(p => p.y * H);
-  const x1 = Math.min(...xs)-18, y1 = Math.min(...ys)-18;
-  const x2 = Math.max(...xs)+18, y2 = Math.max(...ys)+18;
-  camCtx.strokeStyle = 'rgba(57,255,20,.32)'; camCtx.lineWidth = 1;
-  camCtx.strokeRect(x1, y1, x2-x1, y2-y1);
-  const bc = (cx,cy,dx,dy) => {
+  [0,1,5,9,13,17].forEach((i, k) => k ? camCtx.lineTo(P[i][0], P[i][1]) : camCtx.moveTo(P[i][0], P[i][1]));
+  camCtx.closePath();
+  camCtx.fillStyle = `rgba(${GR},.08)`; camCtx.fill();
+  camCtx.strokeStyle = `rgba(${GR},.38)`; camCtx.lineWidth = 1.2; camCtx.stroke();
+
+  /* dedos: segmentos que afinam e clareiam em direção à ponta (halo + núcleo) */
+  for (let k = 0; k < 3; k++) {
     camCtx.beginPath();
-    camCtx.moveTo(cx+dx*16, cy); camCtx.lineTo(cx, cy); camCtx.lineTo(cx, cy+dy*16);
+    FINGERS.forEach(f => { camCtx.moveTo(P[f[k]][0], P[f[k]][1]); camCtx.lineTo(P[f[k+1]][0], P[f[k+1]][1]); });
+    const w = 3.6 - k * 0.8;
+    camCtx.strokeStyle = `rgba(${GR},.16)`; camCtx.lineWidth = w + 5; camCtx.stroke();
+    camCtx.strokeStyle = `rgba(${GR},${(0.6 + k * 0.17).toFixed(2)})`; camCtx.lineWidth = w; camCtx.stroke();
+  }
+
+  /* juntas: pontinhos discretos */
+  camCtx.fillStyle = `rgba(${GR},.9)`;
+  FINGERS.forEach(f => [f[0], f[1], f[2]].forEach(i => {
+    camCtx.beginPath(); camCtx.arc(P[i][0], P[i][1], 2.2, 0, Math.PI * 2); camCtx.fill();
+  }));
+
+  /* pontas: núcleo claro + anel; indicador (aponta o rótulo) ganha mira */
+  FINGERS.forEach(f => {
+    const [tx, ty] = P[f[3]];
+    camCtx.beginPath(); camCtx.arc(tx, ty, 7.5, 0, Math.PI * 2);
+    camCtx.strokeStyle = `rgba(${GR},.45)`; camCtx.lineWidth = 1.2; camCtx.stroke();
+    camCtx.beginPath(); camCtx.arc(tx, ty, 3.6, 0, Math.PI * 2);
+    camCtx.fillStyle = 'rgba(235,255,240,.97)'; camCtx.fill();
+  });
+  { const [ix, iy] = P[8];
+    camCtx.strokeStyle = `rgba(${GR},.75)`; camCtx.lineWidth = 1;
+    camCtx.beginPath();
+    camCtx.moveTo(ix - 13, iy); camCtx.lineTo(ix - 9, iy); camCtx.moveTo(ix + 9, iy); camCtx.lineTo(ix + 13, iy);
+    camCtx.moveTo(ix, iy - 13); camCtx.lineTo(ix, iy - 9); camCtx.moveTo(ix, iy + 9); camCtx.lineTo(ix, iy + 13);
+    camCtx.stroke(); }
+
+  /* pulso: losango */
+  { const [wx, wy] = P[0], r = 6;
+    camCtx.beginPath(); camCtx.moveTo(wx, wy - r); camCtx.lineTo(wx + r, wy); camCtx.lineTo(wx, wy + r); camCtx.lineTo(wx - r, wy); camCtx.closePath();
+    camCtx.fillStyle = 'rgba(0,0,0,.55)'; camCtx.fill();
+    camCtx.strokeStyle = 'rgba(235,255,240,.95)'; camCtx.lineWidth = 1.6; camCtx.stroke(); }
+
+  /* ── bounding box: só cantos, bem discretos ── */
+  const xs = P.map(q => q[0]), ys = P.map(q => q[1]);
+  const x1 = Math.min(...xs) - 22, y1 = Math.min(...ys) - 22;
+  const x2 = Math.max(...xs) + 22, y2 = Math.max(...ys) + 22;
+  camCtx.strokeStyle = `rgba(${GR},.12)`; camCtx.lineWidth = 1;
+  camCtx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+  const bc = (cx, cy, dx, dy) => {
+    camCtx.beginPath();
+    camCtx.moveTo(cx + dx * 14, cy); camCtx.lineTo(cx, cy); camCtx.lineTo(cx, cy + dy * 14);
     camCtx.stroke();
   };
-  camCtx.strokeStyle = 'rgba(57,255,20,.9)'; camCtx.lineWidth = 2;
-  bc(x1,y1, 1, 1); bc(x2,y1,-1, 1); bc(x1,y2, 1,-1); bc(x2,y2,-1,-1);
+  camCtx.strokeStyle = `rgba(${GR},.85)`; camCtx.lineWidth = 1.8;
+  bc(x1, y1, 1, 1); bc(x2, y1, -1, 1); bc(x1, y2, 1, -1); bc(x2, y2, -1, -1);
+  camCtx.lineCap = 'butt';
  
   /* ── classify fingers (histerese, escalada pelo tamanho da palma) ── */
   const palmRef = Math.hypot((lm[0].x - lm[9].x) * W, (lm[0].y - lm[9].y) * H) || 1;
