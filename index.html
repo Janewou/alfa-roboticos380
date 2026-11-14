@@ -1340,6 +1340,7 @@ body {
 let serialPort = null;
 let serialWriter = null;
 let arduinoReady = false;
+let serialQueue = Promise.resolve();
 
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -1388,22 +1389,33 @@ document.getElementById('btn-arduino').addEventListener('click', async () => {
 // Usamos Uint8Array diretamente em vez de TextEncoderStream para deixar
 // a comunicação com o Serial do Arduino simples e determinística.
 async function send(data) {
+  const command = String(data).trim();
+  // O firmware aceita somente 0–4, A, H e X.
+  if (!/^[0-4AHX]$/i.test(command)) {
+    addLog('COMANDO SERIAL IGNORADO // ' + command);
+    return false;
+  }
   if (!serialWriter || !arduinoReady) {
-    console.warn('Arduino não conectado. Dado não enviado:', data);
+    console.warn('Arduino não conectado. Dado não enviado:', command);
     return false;
   }
 
-  try {
-    const payload = new TextEncoder().encode(String(data) + '\n');
+  // Serializa as escritas para impedir colisões entre comandos consecutivos.
+  const task = serialQueue.then(async () => {
+    if (!serialWriter || !arduinoReady) return false;
+    const payload = new TextEncoder().encode(command.toUpperCase() + '\n');
     await serialWriter.write(payload);
-    addLog('ARDUINO TX // ' + data);
+    addLog('ARDUINO TX // ' + command.toUpperCase());
     return true;
-  } catch (err) {
+  });
+
+  serialQueue = task.catch(err => {
     arduinoReady = false;
     document.getElementById('arduino-state').innerText = 'ARDUINO // ERRO DE TRANSMISSÃO';
     addLog('ARDUINO TX ERROR: ' + (err && err.message ? err.message : err));
     return false;
-  }
+  });
+  return task.catch(() => false);
 }
 
 /* ═══════════════════════════════════════════════════
@@ -1569,6 +1581,7 @@ secondaryPlayer.preload = 'auto';
 secondaryPlayer.volume = 1.0;
 let secondaryLastGesture = '';
 let secondaryBusy = false;
+let secondaryLedEffect = null; // 'A' (arma), 'H' (hipersono) ou null
  
 /* ═══════════════════════════════════════════════════
    SESSÃO ID
@@ -1758,6 +1771,7 @@ function hideVideoStage(){
 }
 
 function onMediaEnded() {
+  stopDecodeText();
   hideVideoStage();
   clearInterval(progressTimer);
   audFillEl.style.width = '100%';
@@ -1784,6 +1798,15 @@ function onMediaError() {
 player.onerror = onMediaError;
 stageVideoEl.onerror = onMediaError;
 
+function stopSecondarySound(sendStopCommand = true) {
+  const hadLedEffect = secondaryLedEffect !== null;
+  secondaryPlayer.pause();
+  secondaryPlayer.currentTime = 0;
+  secondaryBusy = false;
+  secondaryLedEffect = null;
+  if (hadLedEffect && sendStopCommand) send('X');
+}
+
 function playSecondarySound(gesture){
   const files = {
     'PEACE': 'hipersono.mp3',
@@ -1792,18 +1815,58 @@ function playSecondarySound(gesture){
   };
   const file = files[gesture];
   if (!file) return;
+
+  // Encerra o efeito anterior antes de iniciar o próximo.
+  stopSecondarySound(true);
+
+  const ledCommand = gesture === 'ROCK' ? 'A' :
+                     gesture === 'PEACE' ? 'H' : null;
   const path = new URL(`${CFG.pastaSons}${file}`, document.baseURI).href;
+
   try {
-    secondaryPlayer.pause();
-    secondaryPlayer.currentTime = 0;
     secondaryPlayer.src = path;
     secondaryPlayer.load();
-    secondaryPlayer.play().catch(err => addLog('EFEITO NÃO REPRODUZIDO: ' + err.message));
-    addLog(`EFEITO ${gesture} // ${file}`);
+
+    // A e H correspondem aos efeitos definidos no CPP.
+    // POLEGAR DOWN toca explosao.mp3, mas não envia comando de LED:
+    // o firmware atual não possui efeito secundário para esse gesto.
+    if (ledCommand) {
+      secondaryLedEffect = ledCommand;
+      send(ledCommand);
+    }
+
+    const playPromise = secondaryPlayer.play();
+    if (playPromise && typeof playPromise.catch === 'function') {
+      playPromise.catch(err => {
+        if (secondaryLedEffect) stopSecondarySound(true);
+        addLog('EFEITO NÃO REPRODUZIDO: ' + err.message);
+      });
+    }
+    secondaryBusy = true;
+    addLog(`EFEITO ${gesture} // ${file}${ledCommand ? ' // LED ' + ledCommand : ''}`);
   } catch(err) {
-    addLog('ERRO EFEITO: ' + err.message);
+    if (secondaryLedEffect) stopSecondarySound(true);
+    addLog('EFEITO NÃO REPRODUZIDO: ' + (err && err.message ? err.message : err));
   }
 }
+
+secondaryPlayer.addEventListener('ended', () => {
+  if (secondaryLedEffect) {
+    const endedEffect = secondaryLedEffect;
+    secondaryLedEffect = null;
+    secondaryBusy = false;
+    send('X');
+    addLog(`EFEITO LED ${endedEffect} FINALIZADO // X ENVIADO`);
+  }
+});
+
+secondaryPlayer.addEventListener('error', () => {
+  if (secondaryLedEffect) {
+    secondaryLedEffect = null;
+    send('X');
+  }
+  secondaryBusy = false;
+});
 
 function playNextAudio() {
   const playedAudioIndex = audioIndex;
@@ -1818,6 +1881,8 @@ function playNextAudio() {
   if (playedAudioIndex === 4) document.body.classList.add('alarm-orange');
 
   if (!player.paused) { player.pause(); player.currentTime = 0; }
+  // Um áudio principal novo encerra qualquer efeito ROCK/PEACE ativo.
+  stopSecondarySound(true);
   hideVideoStage();
   const isVideo = playedAudioIndex === CFG.videoAudio;
   activeMedia = isVideo ? stageVideoEl : player;
@@ -1883,15 +1948,18 @@ function playNextAudio() {
     }
   })();
 
-  send(String(playedAudioIndex));
+  // O firmware aceita estados principais de 0 a 4; o áudio 5 é vídeo.
+  if (playedAudioIndex >= 1 && playedAudioIndex <= 4) send(String(playedAudioIndex));
+  else send('0');
 }
 
 /* ═══════════════════════════════════════════════════
    GESTO CANCELAR — POLEGAR PARA BAIXO
 ═══════════════════════════════════════════════════ */
 function cancelCurrentAudio(){
-  if (!playing && !activeAudioIndex) return;
+  if (!playing && !activeAudioIndex && !secondaryLedEffect) return;
 
+  stopSecondarySound(true);
   const cancelled = activeAudioIndex;
   const restore = previousAudioIndex || 0;
 
